@@ -20,7 +20,7 @@ namespace HydroFloat
 	};
 
     const  char update_firmware_html[] PROGMEM =  R"rawliteral(
-        <!DOCTYPE html><html lang=\"en\"><head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1, user-scalable=no\"/>
+        <!DOCTYPE html><html lang=\"en\"><head><meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
         <title>{n}</title>
         </head><body>
             <div>

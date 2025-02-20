@@ -3,7 +3,7 @@
 #include "Arduino.h"
 
 const  char settings_html[] PROGMEM =  R"rawliteral(
-	<!DOCTYPE html><html lang=\"en\"><head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1, user-scalable=no\"/>
+	<!DOCTYPE html><html lang=\"en\"><head><meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
 	<title>{n}</title>
 
 	<style>.de{background-color:#ffaaaa;} .em{font-size:0.8em;color:#bb0000;padding-bottom:0px;} .c{text-align: center;} div,input,select{padding:5px;font-size:1em;} input{width:50%;} select{width:60%} input[type=checkbox]{width:auto;scale:1.5;margin:10px;} body{text-align: center;font-family:verdana;} button{border:0;border-radius:0.3rem;background-color:#16A1E7;color:#fff;line-height:2.4rem;font-size:1.2rem;width:100%;} fieldset{border-radius:0.3rem;margin: 0px;}.hide{display: none;}
@@ -21,7 +21,7 @@ const  char settings_html[] PROGMEM =  R"rawliteral(
 	)rawliteral";
 
 const  char config_html[] PROGMEM =  R"rawliteral(
-	<!DOCTYPE html><html lang=\"en\"><head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1, user-scalable=no\"/>
+	<!DOCTYPE html><html lang=\"en\"><head><meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
 	<title>{n}</title>
 
 	<style>.de{background-color:#ffaaaa;} .em{font-size:0.8em;color:#bb0000;padding-bottom:0px;} .c{text-align: center;} div,input,select{padding:5px;font-size:1em;} input{width:50%;} select{width:60%} input[type=checkbox]{width:auto;scale:1.5;margin:10px;} body{text-align: center;font-family:verdana;} button{border:0;border-radius:0.3rem;background-color:#16A1E7;color:#fff;line-height:2.4rem;font-size:1.2rem;width:100%;} fieldset{border-radius:0.3rem;margin: 0px;}.hide{display: none;}
@@ -50,7 +50,7 @@ const  char config_html[] PROGMEM =  R"rawliteral(
 	)rawliteral";
 
 const  char update_html[] PROGMEM =  R"rawliteral(
-<!DOCTYPE html><html lang=\"en\"><head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1, user-scalable=no\"/>
+<!DOCTYPE html><html lang=\"en\"><head><meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
 <title>Firmware Update</title>
 </head><body>
 <h1>HydroFloat Firmware Update</h1>
