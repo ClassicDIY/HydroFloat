@@ -1,6 +1,6 @@
 # HydroFloat
 ## Piezoelectric Submersible Level Sensor using ESP32 X4 Relay board. 
-### Similar to the FloatLevel project but does not have MQTT, Modbus. Wifi runs in AP mode only
+#### Similar to the FloatLevel project but does not have MQTT, Modbus. Wifi runs in AP mode only
 
 [![Hits](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2FClassicDIY%2FFloatLevel&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false)](https://hits.seeyoufarm.com)
 
