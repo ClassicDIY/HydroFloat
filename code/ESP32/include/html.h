@@ -6,15 +6,35 @@ const  char settings_html[] PROGMEM =  R"rawliteral(
 	<!DOCTYPE html><html lang=\"en\"><head><meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
 	<title>{n}</title>
 
-	<style>.de{background-color:#ffaaaa;} .em{font-size:0.8em;color:#bb0000;padding-bottom:0px;} .c{text-align: center;} div,input,select{padding:5px;font-size:1em;} input{width:50%;} select{width:60%} input[type=checkbox]{width:auto;scale:1.5;margin:10px;} body{text-align: center;font-family:verdana;} button{border:0;border-radius:0.3rem;background-color:#16A1E7;color:#fff;line-height:2.4rem;font-size:1.2rem;width:100%;} fieldset{border-radius:0.3rem;margin: 0px;}.hide{display: none;}
+	<style>
+	.c{text-align: center;} 
+	.fld
+	{
+		margin-left: 20px;
+		color: #000080;
+		background-color: #FFD700;
+		clear: both;
+		text-align: center;
+		font-size:larger;
+		background: transparent;
+		display: inline-block;
+	}
+	body{text-align: center;font-family:verdana;} 
+	fieldset{border-radius:0.3rem;margin: 0px;}
 	</style>
+
 	</head><body>
 		<div>
 			<h2>{n}</h2>
 			<div style='font-size: .6em;'>Firmware config version '{v}'</div>
 			<hr>
 		</div>
-		<ul><li>Overflow: {of}</li><li>Start Lag: {slag}</li><li>Start Lead: {slead}</li><li>Stop: {stop}</li></ul>
+		<fieldset id="levels"><legend>Level</legend>
+			<div class="fld">Overflow: {of}</div>
+			<div class="fld">Start Lag: {slag}</div>
+			<div class="fld">Start Lead: {slead}</div>
+			<div class="fld">Stop: {stop}</div>
+		</fieldset>
 		<p><a href="/config">Configuration</a></p>
 		<p><a href='/'>Return to home page.</a></p>
 	</body></html>
@@ -24,7 +44,18 @@ const  char config_html[] PROGMEM =  R"rawliteral(
 	<!DOCTYPE html><html lang=\"en\"><head><meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
 	<title>{n}</title>
 
-	<style>.de{background-color:#ffaaaa;} .em{font-size:0.8em;color:#bb0000;padding-bottom:0px;} .c{text-align: center;} div,input,select{padding:5px;font-size:1em;} input{width:50%;} select{width:60%} input[type=checkbox]{width:auto;scale:1.5;margin:10px;} body{text-align: center;font-family:verdana;} button{border:0;border-radius:0.3rem;background-color:#16A1E7;color:#fff;line-height:2.4rem;font-size:1.2rem;width:100%;} fieldset{border-radius:0.3rem;margin: 0px;}.hide{display: none;}
+	<style>
+		.de{background-color:#ffaaaa;} 
+		.em{font-size:0.8em;color:#bb0000;padding-bottom:0px;} 
+		.c{text-align: center;} 
+		div,input,select{padding:5px;font-size:1em;} 
+		input{width:50%;} 
+		select{width:60%} 
+		input[type=checkbox]{width:auto;scale:1.5;margin:10px;} 
+		body{text-align: center;font-family:verdana;} 
+		button{border:0;border-radius:0.3rem;background-color:#16A1E7;color:#fff;line-height:2.4rem;font-size:1.2rem;width:100%;} 
+		fieldset{border-radius:0.3rem;margin: 0px;}
+		.hide{display: none;}
 	</style>
 
 	</head><body>
@@ -37,9 +68,9 @@ const  char config_html[] PROGMEM =  R"rawliteral(
 		<form action='/submit' method='post'>
 		<fieldset id="levels"><legend>Level</legend>
 		<div class=""><label for="overflow">Overflow</label><input type="number" id="overflow" name="overflow" placeholder="1..100" value={of} min="1" max="100" step="1"><div class="em"></div></div>
-		<div class=""><label for="slag">Start Lag</label><input type="number" id="slag" name="slag" placeholder="1..100" value={slag} min="1" max="100" step="1"><div class="em"></div></div>
-		<div class=""><label for="slead">Start Lead</label><input type="number" id="slead" name="slead" placeholder="1..100" value={slead} min="1" max="100" step="1"><div class="em"></div></div>
-		<div class=""><label for="stop">Stop</label><input type="number" id="stop" name="stop" placeholder="1..100" value={stop} min="1" max="100" step="1"><div class="em"></div></div>
+		<div class="{slag_de}"><label for="slag">Start Lag</label><input type="number" id="slag" name="slag" placeholder="1..100" value={slag} min="1" max="100" step="1"><div class="em">{slag_error}</div></div>
+		<div class="{slead_de}"><label for="slead">Start Lead</label><input type="number" id="slead" name="slead" placeholder="1..100" value={slead} min="1" max="100" step="1"><div class="em">{slead_error}</div></div>
+		<div class="{stop_de}"><label for="stop">Stop</label><input type="number" id="stop" name="stop" placeholder="1..100" value={stop} min="1" max="100" step="1"><div class="em">{stop_error}</div></div>
 		</fieldset>
 		<button type="submit" style="margin-top: 10px;">Apply</button>
 		</form>
@@ -66,30 +97,22 @@ const  char home_html[] PROGMEM =  R"rawliteral(
     <head>
 	<title>{n}</title>
 
-		<style>.de{background-color:#ffaaaa;} .em{font-size:0.8em;color:#bb0000;padding-bottom:0px;} .c{text-align: center;} div,input,select{padding:5px;font-size:1em;} input{width:50%;} select{width:60%} input[type=checkbox]{width:auto;scale:1.5;margin:10px;} body{text-align: center;font-family:verdana;} button{border:0;border-radius:0.3rem;background-color:#16A1E7;color:#fff;line-height:2.4rem;font-size:1.2rem;width:100%;} fieldset{border-radius:0.3rem;margin: 0px;}.hide{display: none;}
+	<style>
+		.c{text-align: center;} 
+		body{text-align: center;font-family:verdana;} 
+		.hide{display: none;}
 
-		  .pump
-			{
-				margin-left: 20px;
-				color: #000080;
-				background-color: #FFD700;
-				clear: both;
-				text-align: center;
-				font-size:larger;
-				background: transparent;
-				display: inline-block;
-			}
-			.box {
-				width: 100px;
-				height: 25px;
-				margin: 5px;
-				// display: inline-block;
-				background-color:grey;
-				display: inline-flex; /* Changed to inline-flex to allow the use of Flexbox */
-				align-items: center;  /* Vertically center the content */
-				justify-content: center; /* Horizontally center the content */
-				border: 1px solid #000; /* Added a border for better visibility */
-			}
+		.box {
+			width: 100px;
+			height: 25px;
+			margin: 5px;
+			// display: inline-block;
+			background-color:grey;
+			display: inline-flex; /* Changed to inline-flex to allow the use of Flexbox */
+			align-items: center;  /* Vertically center the content */
+			justify-content: center; /* Horizontally center the content */
+			border: 1px solid #000; /* Added a border for better visibility */
+		}
         </style>
 
 		<script>
