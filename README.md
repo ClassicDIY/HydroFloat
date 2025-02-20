@@ -35,6 +35,6 @@ Used the following development tools;
 
 <ul>
   <li>Visual Studio Code with the PlatformIO extension.</li>
-  <li>Access Point, use the default 12345678 as the AP password. Browse 192.168.4.1 and go to Configuration Page to set the levels.
+  <li>Access Point is HydroFloat, use the default 12345678 as the AP password. Browse 192.168.4.1 and go to Configuration Page to set the levels.
 </ul>
 
