@@ -65,10 +65,23 @@ const  char config_html[] PROGMEM =  R"rawliteral(
 			place-items: center;
 			height: 100%; 
 		}
-		div,input,select{padding:5px;font-size:1em;} 
-		input{width:50%;} 
-		select{width:60%} 
-		input[type=checkbox]{width:auto;scale:1.5;margin:10px;} 
+
+        .form-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .form-group label {
+            width: 150px; /* Adjust the width as needed */
+        }
+
+        .form-group input[type="text"] {
+            width: 120px;
+		}
+		.form-group input[type="number"] {
+            width: 40px;
+		}
 		body{text-align: center;font-family:verdana;} 
 		button{border:0;border-radius:0.3rem;background-color:#16A1E7;color:#fff;line-height:2.4rem;font-size:1.2rem;width:50%;align: center;} 
 		fieldset{border-radius:0.3rem;margin: 0px;width:100%;}
@@ -85,14 +98,14 @@ const  char config_html[] PROGMEM =  R"rawliteral(
 		<div class="center-flex">
 		<form action='/submit' method='post'>
 		<fieldset id="network"><legend>Network</legend>
-		<p><div class="{ssid_de}"><label for="ssid">SSID</label><input type="text" id="ssid" name="ssid" value={ssid} maxlength="32"><div class="{ssid_em}">SSID must be specified</div></div></p>
-		<p><div class="{appw_de}"><label for="appw">AP Password</label><input type="text" id="appw" name="appw" value={appw} maxlength="32"><div class="{appw_em}">AP Password must have at least 8 characters</div></div></p>
+		<p><div class="form-group"><label for="ssid">SSID</label><input type="text" id="ssid" name="ssid" value={ssid} required maxlength="32"></div></p>
+		<p><div class="form-group"><label for="appw">AP Password</label><input type="text" id="appw" name="appw" value={appw} minlength="8" required maxlength="32"></div></p>
 		</fieldset>
 		<fieldset id="levels"><legend>Level</legend>
-		<p><div class=""><label for="overflow">Overflow</label><input type="number" id="overflow" name="overflow" placeholder="1..100" value={of} min="1" max="100" step="1"></div></p>
-		<p><div class="{slag_de}"><label for="slag">Start Lag</label><input type="number" id="slag" name="slag" placeholder="1..100" value={slag} min="1" max="100" step="1"><div class="{slag_em}">Start Lag must be less than Overflow</div></div></p>
-		<p><div class="{slead_de}"><label for="slead">Start Lead</label><input type="number" id="slead" name="slead" placeholder="1..100" value={slead} min="1" max="100" step="1"><div class="{slead_em}">Start Lead must be less than Start Lag</div></div></p>
-		<p><div class="{stop_de}"><label for="stop">Stop</label><input type="number" id="stop" name="stop" placeholder="1..100" value={stop} min="1" max="100" step="1"><div class="{stop_em}">Stop must be less than Start Lead</div></div></p>
+		<p><div class="form-group"><label for="overflow">Overflow</label><input type="number" id="overflow" name="overflow" placeholder="1..100" value={of} min="1" max="100" required step="1"></div></p>
+		<p><div class="form-group"><label for="slag">Start Lag</label><input type="number" id="slag" name="slag" placeholder="1..100" value={slag} min="1" max="100" required step="1"></div></p>
+		<p><div class="form-group"><label for="slead">Start Lead</label><input type="number" id="slead" name="slead" placeholder="1..100" value={slead} min="1" max="100" required step="1"></div></p>
+		<p><div class="form-group"><label for="stop">Stop</label><input type="number" id="stop" name="stop" placeholder="1..100" value={stop} min="1" max="100" required step="1"></div></p>
 		</fieldset>
 		<button type="submit" style="margin-top: 10px;">Apply</button>
 		</form>

@@ -123,120 +123,49 @@ namespace HydroFloat {
 			page.replace("{slag}", String(startLagLevel));
 			page.replace("{slead}", String(startLeadLevel));
 			page.replace("{stop}", String(stopLevel));
-			page.replace("{ssid_de}", "");
-			page.replace("{appw_de}", "");
-			page.replace("{stop_de}", "");
-			page.replace("{slead_de}", "");
-			page.replace("{slag_de}", "");
-			page.replace("{ssid_em}", "hide");
-			page.replace("{appw_em}", "hide");
-			page.replace("{stop_em}", "hide");
-			page.replace("{slead_em}", "hide");
-			page.replace("{slag_em}", "hide");
 			request->send(200, "text/html", page);
 		});
 		_asyncServer.on("/submit", HTTP_POST, [this](AsyncWebServerRequest *request) {
 			logd("submit");
-			String SSIDParam;
-			String passwordParam;
-			uint16_t overflowParam = 0;
-			uint16_t startLagParam = 0;
-			uint16_t startLeadParam = 0;
-			uint16_t stopParam = 0;
 
 			if (request->hasParam("ssid", true)) {
-				SSIDParam = request->getParam("ssid", true)->value().c_str();
+				_SSID = request->getParam("ssid", true)->value().c_str();
 			}
 			if (request->hasParam("appw", true)) {
-				passwordParam = request->getParam("appw", true)->value().c_str();
+				_password = request->getParam("appw", true)->value().c_str();
 			}
 			if (request->hasParam("overflow", true)) {
-				overflowParam = request->getParam("overflow", true)->value().toInt();
+				overflowLevel = request->getParam("overflow", true)->value().toInt();
 			}
 			if (request->hasParam("slag", true)) {
-				startLagParam = request->getParam("slag", true)->value().toInt();
+				startLagLevel = request->getParam("slag", true)->value().toInt();
 			}
 			if (request->hasParam("slead", true)) {
-				startLeadParam = request->getParam("slead", true)->value().toInt();
+				startLeadLevel = request->getParam("slead", true)->value().toInt();
 			}	
 			if (request->hasParam("stop", true)) {
-				stopParam = request->getParam("stop", true)->value().toInt();
+				stopLevel = request->getParam("stop", true)->value().toInt();
 			}	
-			String page = config_html;
-			bool valid = true;
-			if (SSIDParam.length() == 0) {
-				page.replace("{ssid_de}", "de");
-				page.replace("{ssid_em}", "em");
-				valid = false;
-			}
-			else {
-				page.replace("{ssid_de}", "");
-				page.replace("{ssid_em}", "hide");
-			}
-			if (passwordParam.length() < 8) {
-				page.replace("{appw_de}", "de");
-				page.replace("{appw_em}", "em");
-				valid = false;
-			}
-			else {
-				page.replace("{appw_de}", "");
-				page.replace("{appw_em}", "hide");
-			}
-			if (startLeadParam <= stopParam) {
-				page.replace("{stop_de}", "de");
-				page.replace("{stop_em}", "em");
-				valid = false;
-			}
-			else {
-				page.replace("{stop_de}", "");
-				page.replace("{stop_em}", "hide");
-			}
-			if (startLagParam <= startLeadParam ) {
-				page.replace("{slead_de}", "de");
-				page.replace("{slead_em}", "em");
-				valid = false;
-			}
-			else {
-				page.replace("{slead_de}", "");
-				page.replace("{slead_em}", "hide");
-			}
-			if (overflowParam <= startLagParam ) {
-				page.replace("{slag_de}", "de");
-				page.replace("{slag_em}", "em");
-				valid = false;
-			}
-			else {
-				page.replace("{slag_de}", "");
-				page.replace("{slag_em}", "hide");
-			}
-			if (valid) {
-				_SSID = SSIDParam;
-				_password = passwordParam;
-				overflowLevel = overflowParam;
-				startLagLevel = startLagParam;
-				startLeadLevel = startLeadParam;
-				stopLevel = stopParam;
-				JsonDocument doc;
-				doc["version"] = CONFIG_VERSION;
-				doc["ssid"] = _SSID;
-				doc["appw"] = _password;
-				doc["of"] = overflowLevel;
-				doc["slag"] = startLagLevel;
-				doc["slead"] = startLeadLevel;
-				doc["stop"] = stopLevel;
-				String jsonString;
-				serializeJson(doc, jsonString);
-				saveToEEPROM(jsonString);
-				page = settings_html;
-			}
+			JsonDocument doc;
+			doc["version"] = CONFIG_VERSION;
+			doc["ssid"] = _SSID;
+			doc["appw"] = _password;
+			doc["of"] = overflowLevel;
+			doc["slag"] = startLagLevel;
+			doc["slead"] = startLeadLevel;
+			doc["stop"] = stopLevel;
+			String jsonString;
+			serializeJson(doc, jsonString);
+			saveToEEPROM(jsonString);
+			String page = settings_html;
 			page.replace("{n}", TAG);
 			page.replace("{v}", CONFIG_VERSION);
-			page.replace("{ssid}", SSIDParam);
-			page.replace("{appw}", passwordParam);
-			page.replace("{of}", String(overflowParam));
-			page.replace("{slag}", String(startLagParam));
-			page.replace("{slead}", String(startLeadParam));
-			page.replace("{stop}", String(stopParam));
+			page.replace("{ssid}", _SSID);
+			page.replace("{appw}", _password);
+			page.replace("{of}", String(overflowLevel));
+			page.replace("{slag}", String(startLagLevel));
+			page.replace("{slead}", String(startLeadLevel));
+			page.replace("{stop}", String(stopLevel));
 			request->send(200, "text/html", page);
 		});
 		_OTA.begin(&_asyncServer);
