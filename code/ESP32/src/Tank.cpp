@@ -7,24 +7,54 @@
 #include <WebSocketsServer.h>
 #include <EEPROM.h>
 
-namespace HydroFloat
-{
+namespace HydroFloat {
 
 	WebSocketsServer _webSocket = WebSocketsServer(WSOCKET_HOME_PORT);
 
-	void Tank::setup()
-	{
+	void Tank::setup() {
 		logd("setup");
 		pinMode(PUMP_1, OUTPUT);
 		pinMode(PUMP_2, OUTPUT);
 		pinMode(PUMP_3, OUTPUT);
 		pinMode(PUMP_4, OUTPUT);
+		pinMode(FACTORY_RESET_PIN, INPUT_PULLUP);
+		pinMode(WIFI_STATUS_PIN, OUTPUT);
+		EEPROM.begin(EEPROM_SIZE);
+		if (digitalRead(FACTORY_RESET_PIN) == LOW)
+		{
+			logi("Factory Reset");
+			EEPROM.write(0, 0);
+			EEPROM.commit();
+		}
+		else {
+			logi("Loading configuration from EEPROM");
+			String readJsonString = loadFromEEPROM();
+			JsonDocument doc;
+			DeserializationError error = deserializeJson(doc, readJsonString);
+			if (error) {
+				loge("Failed to load data from EEPROM, using defaults: %s", error.c_str());
+			} else {
+				_SSID = doc["ssid"].isNull() ? TAG : doc["ssid"].as<String>();
+				_password = doc["appw"].isNull() ? DEFAULT_AP_PASSWORD : doc["appw"].as<String>();
+				overflowLevel = doc["of"].isNull() ? overflowLevel_default : doc["of"];
+				startLagLevel = doc["slag"].isNull() ? startLagLevel_default : doc["slag"];
+				startLeadLevel = doc["slead"].isNull() ? startLeadLevel_default : doc["slead"];
+				stopLevel = doc["stop"].isNull() ? stopLevel_default : doc["stop"];
+			}
+		}
 		WiFi.onEvent([this](WiFiEvent_t event, WiFiEventInfo_t info) {
 			logd("[WiFi-event] event: %d", event);
+			switch (event) {
+			case ARDUINO_EVENT_WIFI_AP_STADISCONNECTED:
+				_networkStatus = NotConnected;
+			break;
+			case ARDUINO_EVENT_WIFI_AP_STAIPASSIGNED:
+				_networkStatus = APMode;
+			break;
+			}
 		  });
-
-		if (WiFi.softAP(TAG, DEFAULT_AP_PASSWORD))
-		{
+		logi("WiFi AP SSID: %s PW: %s", _SSID, _password);
+		if (WiFi.softAP(_SSID, _password)) {
 			logd("AP Started");
 			IPAddress IP = WiFi.softAPIP();
 			logd("AP IP address: %s", IP.toString().c_str());
@@ -41,10 +71,12 @@ namespace HydroFloat
 		{ 
 			if (type == WStype_DISCONNECTED) {
 				logi("[%u] Home Page Disconnected!\n", num);
+				_networkStatus = APMode;
 			}
 			else if (type == WStype_CONNECTED) {
 				logi("[%u] Home Page Connected!\n", num);
 				_lastWaterLevel = -1; //force a broadcast
+				_networkStatus = WSMode;
 			} 
 		});
 
@@ -59,17 +91,20 @@ namespace HydroFloat
 
 		_asyncServer.onNotFound([this](AsyncWebServerRequest *request) {
 			logd("Not found: %s", request->url().c_str());
-			// String page = home_html;
-			// page.replace("{n}", TAG);
-			// page.replace("{v}", CONFIG_VERSION);
-			// page.replace("{hp}", String(WSOCKET_HOME_PORT));
-			// request->send(200, "text/html", page);
+			String page = redirect_html;
+			page.replace("{n}", TAG);
+			IPAddress IP = WiFi.softAPIP();
+			page.replace("{ip}", IP.toString().c_str());
+			request->send(200, "text/html", page);
 		});
+
 		_asyncServer.on("/settings", HTTP_GET, [this](AsyncWebServerRequest *request) {
 			logd("settings");
 			String page = settings_html;
 			page.replace("{n}", TAG);
 			page.replace("{v}", CONFIG_VERSION);
+			page.replace("{ssid}", _SSID);
+			page.replace("{appw}", _password);
 			page.replace("{of}", String(overflowLevel));
 			page.replace("{slag}", String(startLagLevel));
 			page.replace("{slead}", String(startLeadLevel));
@@ -82,25 +117,39 @@ namespace HydroFloat
 			String page = config_html;
 			page.replace("{n}", TAG);
 			page.replace("{v}", CONFIG_VERSION);
+			page.replace("{ssid}", _SSID);
+			page.replace("{appw}", _password);
 			page.replace("{of}", String(overflowLevel));
 			page.replace("{slag}", String(startLagLevel));
 			page.replace("{slead}", String(startLeadLevel));
 			page.replace("{stop}", String(stopLevel));
+			page.replace("{ssid_de}", "");
+			page.replace("{appw_de}", "");
 			page.replace("{stop_de}", "");
 			page.replace("{slead_de}", "");
 			page.replace("{slag_de}", "");
-			page.replace("{stop_error}", "");
-			page.replace("{slead_error}", "");
-			page.replace("{slag_error}", "");
+			page.replace("{ssid_em}", "hide");
+			page.replace("{appw_em}", "hide");
+			page.replace("{stop_em}", "hide");
+			page.replace("{slead_em}", "hide");
+			page.replace("{slag_em}", "hide");
 			request->send(200, "text/html", page);
 		});
 		_asyncServer.on("/submit", HTTP_POST, [this](AsyncWebServerRequest *request) {
 			logd("submit");
+			String SSIDParam;
+			String passwordParam;
 			uint16_t overflowParam = 0;
 			uint16_t startLagParam = 0;
 			uint16_t startLeadParam = 0;
 			uint16_t stopParam = 0;
 
+			if (request->hasParam("ssid", true)) {
+				SSIDParam = request->getParam("ssid", true)->value().c_str();
+			}
+			if (request->hasParam("appw", true)) {
+				passwordParam = request->getParam("appw", true)->value().c_str();
+			}
 			if (request->hasParam("overflow", true)) {
 				overflowParam = request->getParam("overflow", true)->value().toInt();
 			}
@@ -115,39 +164,62 @@ namespace HydroFloat
 			}	
 			String page = config_html;
 			bool valid = true;
+			if (SSIDParam.length() == 0) {
+				page.replace("{ssid_de}", "de");
+				page.replace("{ssid_em}", "em");
+				valid = false;
+			}
+			else {
+				page.replace("{ssid_de}", "");
+				page.replace("{ssid_em}", "hide");
+			}
+			if (passwordParam.length() < 8) {
+				page.replace("{appw_de}", "de");
+				page.replace("{appw_em}", "em");
+				valid = false;
+			}
+			else {
+				page.replace("{appw_de}", "");
+				page.replace("{appw_em}", "hide");
+			}
 			if (startLeadParam <= stopParam) {
 				page.replace("{stop_de}", "de");
-				page.replace("{stop_error}", "Stop must be less than Start Lead");
+				page.replace("{stop_em}", "em");
 				valid = false;
 			}
 			else {
 				page.replace("{stop_de}", "");
-				page.replace("{stop_error}", "");
+				page.replace("{stop_em}", "hide");
 			}
 			if (startLagParam <= startLeadParam ) {
 				page.replace("{slead_de}", "de");
-				page.replace("{slead_error}", "Start Lead must be less than Start Lag");
+				page.replace("{slead_em}", "em");
 				valid = false;
 			}
 			else {
 				page.replace("{slead_de}", "");
-				page.replace("{slead_error}", "");
+				page.replace("{slead_em}", "hide");
 			}
 			if (overflowParam <= startLagParam ) {
 				page.replace("{slag_de}", "de");
-				page.replace("{slag_error}", "Start Lag must be less than Overflow");
+				page.replace("{slag_em}", "em");
 				valid = false;
 			}
 			else {
 				page.replace("{slag_de}", "");
-				page.replace("{slag_error}", "");
+				page.replace("{slag_em}", "hide");
 			}
 			if (valid) {
+				_SSID = SSIDParam;
+				_password = passwordParam;
 				overflowLevel = overflowParam;
 				startLagLevel = startLagParam;
 				startLeadLevel = startLeadParam;
 				stopLevel = stopParam;
 				JsonDocument doc;
+				doc["version"] = CONFIG_VERSION;
+				doc["ssid"] = _SSID;
+				doc["appw"] = _password;
 				doc["of"] = overflowLevel;
 				doc["slag"] = startLagLevel;
 				doc["slead"] = startLeadLevel;
@@ -159,6 +231,8 @@ namespace HydroFloat
 			}
 			page.replace("{n}", TAG);
 			page.replace("{v}", CONFIG_VERSION);
+			page.replace("{ssid}", SSIDParam);
+			page.replace("{appw}", passwordParam);
 			page.replace("{of}", String(overflowParam));
 			page.replace("{slag}", String(startLagParam));
 			page.replace("{slead}", String(startLeadParam));
@@ -166,28 +240,14 @@ namespace HydroFloat
 			request->send(200, "text/html", page);
 		});
 		_OTA.begin(&_asyncServer);
-		EEPROM.begin(EEPROM_SIZE);
-		String readJsonString = loadFromEEPROM();
-		JsonDocument doc;
-		DeserializationError error = deserializeJson(doc, readJsonString);
-		if (error) {
-		  loge("Failed to load data from EEPROM, using defaults: %s", error.c_str());
-		} else {
-			overflowLevel = doc["of"];
-			startLagLevel = doc["slag"];
-			startLeadLevel = doc["slead"];
-			stopLevel = doc["stop"];
-		}
 	}
 
-	void Tank::endWeb()
-	{
+	void Tank::endWeb()	{
 		_asyncServer.end();
 		_webSocket.close();
 	}
 
-	void Tank::Process()
-	{
+	void Tank::Process() {
 		String s;
 		float waterLevel = _Sensor.Level();
 		if (waterLevel >= 0 && abs(_lastWaterLevel - waterLevel) > 1.0) // limit broadcast to 1% change
@@ -217,6 +277,7 @@ namespace HydroFloat
 		}
 		_webSocket.loop();
 		_dnsServer.processNextRequest();
+		doBlink();
 		return;
 	}
 
@@ -239,4 +300,35 @@ namespace HydroFloat
 		}
 		return jsonString;
 	  }
+
+	void Tank::doBlink()
+	{
+		unsigned long blinkRate = 0;
+		switch (_networkStatus)
+		{
+		case WSMode:
+			blinkRate = 0;
+			break;
+		case APMode:
+			blinkRate = AP_BLINK_RATE;
+			break;
+		case NotConnected:
+			blinkRate = NC_BLINK_RATE;
+			break;
+		}
+		if (blinkRate != 0)
+		{
+			unsigned long now = millis();
+			if (blinkRate < now - _lastBlinkTime)
+			{
+				_blinkStateOn = !_blinkStateOn;
+				_lastBlinkTime = now;
+				digitalWrite(WIFI_STATUS_PIN, _blinkStateOn ? HIGH : LOW);
+			}
+		}
+		else
+		{
+			digitalWrite(WIFI_STATUS_PIN, HIGH);
+		}
+	}
 }

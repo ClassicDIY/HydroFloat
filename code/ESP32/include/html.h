@@ -8,6 +8,12 @@ const  char settings_html[] PROGMEM =  R"rawliteral(
 
 	<style>
 	.c{text-align: center;} 
+	.center-flex {
+		display: grid;
+		place-items: center;
+		height: 100%; 
+	}
+
 	.fld
 	{
 		margin-left: 20px;
@@ -20,7 +26,7 @@ const  char settings_html[] PROGMEM =  R"rawliteral(
 		display: inline-block;
 	}
 	body{text-align: center;font-family:verdana;} 
-	fieldset{border-radius:0.3rem;margin: 0px;}
+	fieldset{border-radius:0.3rem;margin: 0px;width:50%; align: center;}
 	</style>
 
 	</head><body>
@@ -29,14 +35,20 @@ const  char settings_html[] PROGMEM =  R"rawliteral(
 			<div style='font-size: .6em;'>Firmware config version '{v}'</div>
 			<hr>
 		</div>
-		<fieldset id="levels"><legend>Level</legend>
-			<div class="fld">Overflow: {of}</div>
-			<div class="fld">Start Lag: {slag}</div>
-			<div class="fld">Start Lead: {slead}</div>
-			<div class="fld">Stop: {stop}</div>
-		</fieldset>
-		<p><a href="/config">Configuration</a></p>
-		<p><a href='/'>Return to home page.</a></p>
+		<div class="center-flex">
+			<fieldset id="network"><legend>Network</legend>
+				<p><div class="fld">SSID: {ssid}</div></p>
+				<p><div class="fld">AP Password: {appw}</div></p>
+			</fieldset>
+			<fieldset id="levels"><legend>Levels</legend>
+				<p><div class="fld">Overflow: {of}</div></p>
+				<p><div class="fld">Start Lag: {slag}</div></p>
+				<p><div class="fld">Start Lead: {slead}</div></p>
+				<p><div class="fld">Stop: {stop}</div></p>
+			</fieldset>
+			<p><a href="/config">Configuration</a></p>
+			<p><a href='/'>Return to home page.</a></p>
+		</div>
 	</body></html>
 	)rawliteral";
 
@@ -48,13 +60,18 @@ const  char config_html[] PROGMEM =  R"rawliteral(
 		.de{background-color:#ffaaaa;} 
 		.em{font-size:0.8em;color:#bb0000;padding-bottom:0px;} 
 		.c{text-align: center;} 
+		.center-flex {
+			display: grid;
+			place-items: center;
+			height: 100%; 
+		}
 		div,input,select{padding:5px;font-size:1em;} 
 		input{width:50%;} 
 		select{width:60%} 
 		input[type=checkbox]{width:auto;scale:1.5;margin:10px;} 
 		body{text-align: center;font-family:verdana;} 
-		button{border:0;border-radius:0.3rem;background-color:#16A1E7;color:#fff;line-height:2.4rem;font-size:1.2rem;width:100%;} 
-		fieldset{border-radius:0.3rem;margin: 0px;}
+		button{border:0;border-radius:0.3rem;background-color:#16A1E7;color:#fff;line-height:2.4rem;font-size:1.2rem;width:50%;align: center;} 
+		fieldset{border-radius:0.3rem;margin: 0px;width:100%;}
 		.hide{display: none;}
 	</style>
 
@@ -65,18 +82,24 @@ const  char config_html[] PROGMEM =  R"rawliteral(
 			<hr>
 		</div>
 
+		<div class="center-flex">
 		<form action='/submit' method='post'>
+		<fieldset id="network"><legend>Network</legend>
+		<p><div class="{ssid_de}"><label for="ssid">SSID</label><input type="text" id="ssid" name="ssid" value={ssid} maxlength="32"><div class="{ssid_em}">SSID must be specified</div></div></p>
+		<p><div class="{appw_de}"><label for="appw">AP Password</label><input type="text" id="appw" name="appw" value={appw} maxlength="32"><div class="{appw_em}">AP Password must have at least 8 characters</div></div></p>
+		</fieldset>
 		<fieldset id="levels"><legend>Level</legend>
-		<div class=""><label for="overflow">Overflow</label><input type="number" id="overflow" name="overflow" placeholder="1..100" value={of} min="1" max="100" step="1"><div class="em"></div></div>
-		<div class="{slag_de}"><label for="slag">Start Lag</label><input type="number" id="slag" name="slag" placeholder="1..100" value={slag} min="1" max="100" step="1"><div class="em">{slag_error}</div></div>
-		<div class="{slead_de}"><label for="slead">Start Lead</label><input type="number" id="slead" name="slead" placeholder="1..100" value={slead} min="1" max="100" step="1"><div class="em">{slead_error}</div></div>
-		<div class="{stop_de}"><label for="stop">Stop</label><input type="number" id="stop" name="stop" placeholder="1..100" value={stop} min="1" max="100" step="1"><div class="em">{stop_error}</div></div>
+		<p><div class=""><label for="overflow">Overflow</label><input type="number" id="overflow" name="overflow" placeholder="1..100" value={of} min="1" max="100" step="1"></div></p>
+		<p><div class="{slag_de}"><label for="slag">Start Lag</label><input type="number" id="slag" name="slag" placeholder="1..100" value={slag} min="1" max="100" step="1"><div class="{slag_em}">Start Lag must be less than Overflow</div></div></p>
+		<p><div class="{slead_de}"><label for="slead">Start Lead</label><input type="number" id="slead" name="slead" placeholder="1..100" value={slead} min="1" max="100" step="1"><div class="{slead_em}">Start Lead must be less than Start Lag</div></div></p>
+		<p><div class="{stop_de}"><label for="stop">Stop</label><input type="number" id="stop" name="stop" placeholder="1..100" value={stop} min="1" max="100" step="1"><div class="{stop_em}">Stop must be less than Start Lead</div></div></p>
 		</fieldset>
 		<button type="submit" style="margin-top: 10px;">Apply</button>
 		</form>
 		<p><a href='update'>Firmware update</a></p>
 		<p><a href='/'>Return to home page.</a></p>
 		<p><a href='settings'>Return to Settings</a></p>
+		</div>
 	</body></html>
 	)rawliteral";
 
@@ -185,5 +208,23 @@ const  char home_html[] PROGMEM =  R"rawliteral(
   </html>
 )rawliteral";
 
+const  char redirect_html[] PROGMEM =  R"rawliteral(
+	<!DOCTYPE html>
+	<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>{n}</title>
+		<script>
+			window.onload = function() {
+				window.location.href = "http://{ip}/";
+			};
+		</script>
+	</head>
+	<body>
+		<h1>Redirecting to Home Page...</h1>
+	</body>
+	</html>
+	)rawliteral";
 
    

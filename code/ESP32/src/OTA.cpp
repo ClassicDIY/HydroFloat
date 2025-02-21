@@ -6,12 +6,9 @@
 #include "OTA.h"
 
 
-namespace HydroFloat
-{
+namespace HydroFloat {
 
-
-	void OTA::begin(AsyncWebServer* asyncServer)
-	{
+	void OTA::begin(AsyncWebServer* asyncServer) {
         _pAsyncServer = asyncServer;
         _pAsyncServer->on("/update", HTTP_GET, [](AsyncWebServerRequest *request) {
 			String page = update_firmware_html;

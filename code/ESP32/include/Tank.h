@@ -4,6 +4,7 @@
 #include <WebSocketsServer.h>
 #include <ESPAsyncWebServer.h>
 #include <AsyncTCP.h>
+#include "Enumerations.h"
 #include "html.h"
 #include "OTA.h"
 #include "Log.h"
@@ -19,12 +20,18 @@ namespace HydroFloat
 		Tank() {};
 		void setup();
 		void Process();
-		uint16_t stopLevel = 20;
-		uint16_t startLeadLevel = 40;
-		uint16_t startLagLevel = 60;
-		uint16_t overflowLevel = 80;
+		uint16_t stopLevel = stopLevel_default;
+		uint16_t startLeadLevel = startLeadLevel_default;
+		uint16_t startLagLevel = startLagLevel_default;
+		uint16_t overflowLevel = overflowLevel_default;
 
 	private:
+		String _SSID = TAG;
+		String _password = DEFAULT_AP_PASSWORD;
+		void doBlink();
+		NetworkStatus _networkStatus = NotConnected;
+		unsigned long _lastBlinkTime = 0;
+		bool _blinkStateOn = false;
 		void beginWeb();
 		void endWeb();
 		void saveToEEPROM(const String &jsonString);
