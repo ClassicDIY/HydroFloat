@@ -163,10 +163,10 @@ const  char home_html[] PROGMEM =  R"rawliteral(
 			socket.onmessage = function(event) {
 				const gpioValues = JSON.parse(event.data);
 				Gauge.Collection.get('CW_gauge').setValue(gpioValues.level)
-				document.getElementById(`pump4`).style.backgroundColor = (gpioValues.pump4 === 'on') ? 'green' : 'red';
-				document.getElementById(`pump3`).style.backgroundColor = (gpioValues.pump3 === 'on') ? 'green' : 'red';
-				document.getElementById(`pump2`).style.backgroundColor = (gpioValues.pump2 === 'on') ? 'green' : 'red';
-				document.getElementById(`pump1`).style.backgroundColor = (gpioValues.pump1 === 'on') ? 'green' : 'red';
+				document.getElementById(`relay4`).style.backgroundColor = (gpioValues.relay4 === 'on') ? 'green' : 'red';
+				document.getElementById(`relay3`).style.backgroundColor = (gpioValues.relay3 === 'on') ? 'green' : 'red';
+				document.getElementById(`relay2`).style.backgroundColor = (gpioValues.relay2 === 'on') ? 'green' : 'red';
+				document.getElementById(`relay1`).style.backgroundColor = (gpioValues.relay1 === 'on') ? 'green' : 'red';
 
 			};
 			socket.onerror = function(error) {
@@ -207,10 +207,10 @@ const  char home_html[] PROGMEM =  R"rawliteral(
 	</div>
 	
 	<div  id="boxes-container"> 
-		<div class="box" id="pump1"> Stop </div>
-		<div class="box" id="pump2"> Start Lead </div>
-		<div class="box" id="pump3"> Start Lag </div> 
-		<div class="box" id="pump4"> Overflow </div> 
+		<div class="box" id="relay1"> Stop </div>
+		<div class="box" id="relay2"> Start Lead </div>
+		<div class="box" id="relay3"> Start Lag </div> 
+		<div class="box" id="relay4"> Overflow </div> 
 	</div>
 	<div>
 		<hr>

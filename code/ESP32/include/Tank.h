@@ -7,6 +7,7 @@
 #include "Enumerations.h"
 #include "html.h"
 #include "OTA.h"
+#include "Oled.h"
 #include "Log.h"
 #include "Defines.h"
 #include "AnalogSensor.h"
@@ -42,6 +43,7 @@ namespace HydroFloat
 		WebSocketsServer _webSocket = WebSocketsServer(WSOCKET_HOME_PORT);
 		AnalogSensor _Sensor = AnalogSensor(SensorPin);
 		float _lastWaterLevel = 0;
+		Oled _oled = Oled();
 	};
 }
 

@@ -13,12 +13,13 @@ namespace HydroFloat {
 
 	void Tank::setup() {
 		logd("setup");
-		pinMode(PUMP_1, OUTPUT);
-		pinMode(PUMP_2, OUTPUT);
-		pinMode(PUMP_3, OUTPUT);
-		pinMode(PUMP_4, OUTPUT);
+		pinMode(RELAY_1, OUTPUT);
+		pinMode(RELAY_2, OUTPUT);
+		pinMode(RELAY_3, OUTPUT);
+		pinMode(RELAY_4, OUTPUT);
 		pinMode(FACTORY_RESET_PIN, INPUT_PULLUP);
 		pinMode(WIFI_STATUS_PIN, OUTPUT);
+		_oled.begin();
 		EEPROM.begin(EEPROM_SIZE);
 		if (digitalRead(FACTORY_RESET_PIN) == LOW)
 		{
@@ -33,6 +34,17 @@ namespace HydroFloat {
 			DeserializationError error = deserializeJson(doc, readJsonString);
 			if (error) {
 				loge("Failed to load data from EEPROM, using defaults: %s", error.c_str());
+				JsonDocument doc;
+				doc["version"] = CONFIG_VERSION;
+				doc["ssid"] = _SSID;
+				doc["appw"] = _password;
+				doc["of"] = overflowLevel;
+				doc["slag"] = startLagLevel;
+				doc["slead"] = startLeadLevel;
+				doc["stop"] = stopLevel;
+				String jsonString;
+				serializeJson(doc, jsonString);
+				saveToEEPROM(jsonString);
 			} else {
 				_SSID = doc["ssid"].isNull() ? TAG : doc["ssid"].as<String>();
 				_password = doc["appw"].isNull() ? DEFAULT_AP_PASSWORD : doc["appw"].as<String>();
@@ -83,7 +95,7 @@ namespace HydroFloat {
 		_asyncServer.on("/", HTTP_GET, [this](AsyncWebServerRequest *request) {
 			logd("home");
 			String page = home_html;
-			page.replace("{n}", TAG);
+			page.replace("{n}", _SSID);
 			page.replace("{v}", CONFIG_VERSION);
 			page.replace("{hp}", String(WSOCKET_HOME_PORT));
 			request->send(200, "text/html", page);
@@ -92,7 +104,7 @@ namespace HydroFloat {
 		_asyncServer.onNotFound([this](AsyncWebServerRequest *request) {
 			logd("Not found: %s", request->url().c_str());
 			String page = redirect_html;
-			page.replace("{n}", TAG);
+			page.replace("{n}", _SSID);
 			IPAddress IP = WiFi.softAPIP();
 			page.replace("{ip}", IP.toString().c_str());
 			request->send(200, "text/html", page);
@@ -101,7 +113,7 @@ namespace HydroFloat {
 		_asyncServer.on("/settings", HTTP_GET, [this](AsyncWebServerRequest *request) {
 			logd("settings");
 			String page = settings_html;
-			page.replace("{n}", TAG);
+			page.replace("{n}", _SSID);
 			page.replace("{v}", CONFIG_VERSION);
 			page.replace("{ssid}", _SSID);
 			page.replace("{appw}", _password);
@@ -115,7 +127,7 @@ namespace HydroFloat {
 		_asyncServer.on("/config", HTTP_GET, [this](AsyncWebServerRequest *request) {
 			logd("config");
 			String page = config_html;
-			page.replace("{n}", TAG);
+			page.replace("{n}", _SSID);
 			page.replace("{v}", CONFIG_VERSION);
 			page.replace("{ssid}", _SSID);
 			page.replace("{appw}", _password);
@@ -158,7 +170,7 @@ namespace HydroFloat {
 			serializeJson(doc, jsonString);
 			saveToEEPROM(jsonString);
 			String page = settings_html;
-			page.replace("{n}", TAG);
+			page.replace("{n}", _SSID);
 			page.replace("{v}", CONFIG_VERSION);
 			page.replace("{ssid}", _SSID);
 			page.replace("{appw}", _password);
@@ -188,20 +200,21 @@ namespace HydroFloat {
 			boolean s3 = waterLevel > startLagLevel;
 			boolean s4 = waterLevel > overflowLevel;
 
-			digitalWrite(PUMP_1, s1);
-			digitalWrite(PUMP_2, s2);
-			digitalWrite(PUMP_3, s3);
-			digitalWrite(PUMP_4, s4);
+			digitalWrite(RELAY_1, s1);
+			digitalWrite(RELAY_2, s2);
+			digitalWrite(RELAY_3, s3);
+			digitalWrite(RELAY_4, s4);
 
 			JsonDocument doc;
 			doc.clear();
 			doc["level"] = waterLevel;
-			doc["pump1"] = digitalRead(PUMP_1) ? "on" : "off";
-			doc["pump2"] = digitalRead(PUMP_2) ? "on" : "off";
-			doc["pump3"] = digitalRead(PUMP_3) ? "on" : "off";
-			doc["pump4"] = digitalRead(PUMP_4) ? "on" : "off";
+			doc["relay1"] = digitalRead(RELAY_1) ? "on" : "off";
+			doc["relay2"] = digitalRead(RELAY_2) ? "on" : "off";
+			doc["relay3"] = digitalRead(RELAY_3) ? "on" : "off";
+			doc["relay4"] = digitalRead(RELAY_4) ? "on" : "off";
 			serializeJson(doc, s);
 			_webSocket.broadcastTXT(s);
+			_oled.update(waterLevel, s4 ? overflow : s3 ? slag : s2 ? slead : s1 ? stop : off);
 			logd("Water Level: %f JSON: %s", waterLevel, s.c_str());
 		}
 		_webSocket.loop();

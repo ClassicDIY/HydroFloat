@@ -1,0 +1,10 @@
+
+
+USB to Uart TTL
+
+Black - gnd
+Red 	5v
+Green - Tx
+White - Rx
+Yellow - RTS
+Blue

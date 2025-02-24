@@ -11,6 +11,11 @@
 #define ADC_Resolution 4095.0
 #define SAMPLESIZE 20
 
+#define SCREEN_ADDRESS 0x3C // OLED 128X64 I2C address
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+#define OLED_RESET    -1
+
 #define ASYNC_WEBSERVER_PORT 80
 #define WSOCKET_LOG_PORT 7668
 #define WSOCKET_HOME_PORT 7669

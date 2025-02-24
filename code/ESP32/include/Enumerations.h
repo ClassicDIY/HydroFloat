@@ -2,11 +2,21 @@
 
 namespace HydroFloat
 {
-typedef enum
-{
-    NotConnected,
-    APMode,
-    WSMode,
+    typedef enum
+    {
+        NotConnected,
+        APMode,
+        WSMode,
 
-}  NetworkStatus;
+    } NetworkStatus;
+
+    typedef enum
+    {
+        off,
+        stop,
+        slead,
+        slag,
+        overflow
+
+    } relayStatus;
 }
