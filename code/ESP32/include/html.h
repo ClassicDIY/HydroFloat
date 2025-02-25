@@ -129,8 +129,7 @@ const  char update_html[] PROGMEM =  R"rawliteral(
 )rawliteral";
 
 const  char home_html[] PROGMEM =  R"rawliteral(
-    <html>
-    <head>
+    <!DOCTYPE html><html lang=\"en\"><head><meta name="viewport" content="width=device-width, initial-scale=0.8, user-scalable=no">
 	<title>{n}</title>
 
 	<style>
@@ -139,7 +138,7 @@ const  char home_html[] PROGMEM =  R"rawliteral(
 		.hide{display: none;}
 
 		.box {
-			width: 100px;
+			width: 90px;
 			height: 25px;
 			margin: 5px;
 			// display: inline-block;
