@@ -18,13 +18,13 @@ void inline printHexString(char* ptr, int len)
 #endif
 
 #if APP_LOG_LEVEL >= ARDUHAL_LOG_LEVEL_DEBUG
-#define logd(format, ...) log_printf(ARDUHAL_LOG_FORMAT(D, format), ##__VA_ARGS__)
+#define logd(format, ...) log_printf(ARDUHAL_SHORT_LOG_FORMAT(D, format), ##__VA_ARGS__)
 #else
 #define logd(format, ...)
 #endif
 
 #if APP_LOG_LEVEL >= ARDUHAL_LOG_LEVEL_INFO
-#define logi(format, ...) log_printf(ARDUHAL_LOG_FORMAT(I, format), ##__VA_ARGS__)
+#define logi(format, ...) log_printf(ARDUHAL_SHORT_LOG_FORMAT(I, format), ##__VA_ARGS__)
 #else
 #define logi(format, ...)
 #endif

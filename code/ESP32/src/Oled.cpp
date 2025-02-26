@@ -44,9 +44,9 @@ namespace HydroFloat
             strcpy(buffer, "Overflow");
         _oled.setCursor(xOffset(2, strlen(buffer)), STATUS_Y);
         _oled.print(buffer);
-        logd("State: %s", buffer);
+        // logd("State: %s", buffer);
         sprintf(buffer, "%d%%", level);
-        logd("Level: %s", buffer);
+        // logd("Level: %s", buffer);
         _oled.setCursor(xOffset(5, strlen(buffer)), LEVEL_Y); 
         _oled.setTextSize(LEVEL_FONT);         
         _oled.setTextColor(SSD1306_WHITE);
@@ -57,7 +57,7 @@ namespace HydroFloat
     uint8_t Oled::xOffset(uint8_t textSize, uint8_t numberOfCharaters) {
         uint8_t textPixels = textSize * 6;
         uint8_t rVal =  (SCREEN_WIDTH - (numberOfCharaters * textPixels)) / 2;
-        logd("Offset: %d", rVal);
+        // logd("Offset: %d", rVal);
         return rVal;
 
     }

@@ -25,7 +25,10 @@ void setup() {
   _tank->setup();
   if (timer == NULL)  {
     timer = timerBegin(0, 80, true); // timer 0, div 80
-    timerAttachInterrupt(timer, []() { esp_restart(); }, true); // attach callback
+    timerAttachInterrupt(timer, []() { 
+      ets_printf("watchdog timer expired - rebooting\n");
+      esp_restart(); 
+    }, true); // attach callback
     timerAlarmWrite(timer, WATCHDOG_TIMER * 1000, false); // set time in us
     timerAlarmEnable(timer); // enable interrupt
   }

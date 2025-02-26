@@ -20,6 +20,7 @@ namespace HydroFloat {
 		pinMode(FACTORY_RESET_PIN, INPUT_PULLUP);
 		pinMode(WIFI_STATUS_PIN, OUTPUT);
 		_oled.begin();
+		_oled.update(0, off);
 		EEPROM.begin(EEPROM_SIZE);
 		if (digitalRead(FACTORY_RESET_PIN) == LOW)
 		{
@@ -82,11 +83,11 @@ namespace HydroFloat {
 		_webSocket.onEvent([this](uint8_t num, WStype_t type, uint8_t *payload, size_t length)
 		{ 
 			if (type == WStype_DISCONNECTED) {
-				logi("[%u] Home Page Disconnected!\n", num);
+				logi("[%u] Home Page Disconnected!", num);
 				_networkStatus = APMode;
 			}
 			else if (type == WStype_CONNECTED) {
-				logi("[%u] Home Page Connected!\n", num);
+				logi("[%u] Home Page Connected!", num);
 				_lastWaterLevel = -1; //force a broadcast
 				_networkStatus = WSMode;
 			} 
@@ -102,12 +103,14 @@ namespace HydroFloat {
 		});
 
 		_asyncServer.onNotFound([this](AsyncWebServerRequest *request) {
-			logd("Not found: %s", request->url().c_str());
-			String page = redirect_html;
-			page.replace("{n}", _SSID);
-			IPAddress IP = WiFi.softAPIP();
-			page.replace("{ip}", IP.toString().c_str());
-			request->send(200, "text/html", page);
+			if (APMode == _networkStatus) {
+				logd("Redirecting from: %s", request->url().c_str());
+				String page = redirect_html;
+				page.replace("{n}", _SSID);
+				IPAddress IP = WiFi.softAPIP();
+				page.replace("{ip}", IP.toString().c_str());
+				request->send(200, "text/html", page);
+			}
 		});
 
 		_asyncServer.on("/settings", HTTP_GET, [this](AsyncWebServerRequest *request) {
@@ -215,7 +218,7 @@ namespace HydroFloat {
 			serializeJson(doc, s);
 			_webSocket.broadcastTXT(s);
 			_oled.update(waterLevel, s4 ? overflow : s3 ? slag : s2 ? slead : s1 ? stop : off);
-			logd("Water Level: %f JSON: %s", waterLevel, s.c_str());
+			logd("broadcast JSON: %s", s.c_str());
 		}
 		_webSocket.loop();
 		_dnsServer.processNextRequest();
