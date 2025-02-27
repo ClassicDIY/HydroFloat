@@ -2,7 +2,7 @@
 #pragma once
 #define TAG "HydroFloat"
 
-#define WATCHDOG_TIMER 600000 // time in ms to trigger the watchdog
+#define WATCHDOG_TIMEOUT 15 // time in seconds to trigger the watchdog reset
 #define EEPROM_SIZE 512
 #define AP_BLINK_RATE 600
 #define NC_BLINK_RATE 100

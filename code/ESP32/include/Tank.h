@@ -1,9 +1,11 @@
 #pragma once
 #include <Arduino.h>
+#include <EEPROM.h>
 #include <DNSServer.h>
-#include <WebSocketsServer.h>
-#include <ESPAsyncWebServer.h>
 #include <AsyncTCP.h>
+#include <WiFi.h>
+#include <ESPAsyncWebServer.h>
+#include <WebSocketsServer.h>
 #include "Enumerations.h"
 #include "html.h"
 #include "OTA.h"

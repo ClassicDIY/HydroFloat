@@ -2,7 +2,7 @@
 
 #include "Arduino.h"
 
-const  char settings_html[] PROGMEM =  R"rawliteral(
+const char settings_html[] PROGMEM = R"rawliteral(
 	<!DOCTYPE html><html lang=\"en\"><head><meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
 	<title>{n}</title>
 
@@ -46,13 +46,15 @@ const  char settings_html[] PROGMEM =  R"rawliteral(
 				<p><div class="fld">Start Lead: {slead}</div></p>
 				<p><div class="fld">Stop: {stop}</div></p>
 			</fieldset>
+			<p><a href='/log' target='_blank'>Web Log</a></p>
 			<p><a href="/config">Configuration</a></p>
 			<p><a href='/'>Return to home page.</a></p>
+
 		</div>
 	</body></html>
 	)rawliteral";
 
-const  char config_html[] PROGMEM =  R"rawliteral(
+const char config_html[] PROGMEM = R"rawliteral(
 	<!DOCTYPE html><html lang=\"en\"><head><meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
 	<title>{n}</title>
 
@@ -112,11 +114,12 @@ const  char config_html[] PROGMEM =  R"rawliteral(
 		<p><a href='update'>Firmware update</a></p>
 		<p><a href='/'>Return to home page.</a></p>
 		<p><a href='settings'>Return to Settings</a></p>
+		<p><a href='reboot'>Reboot ESP32</a></p>
 		</div>
 	</body></html>
 	)rawliteral";
 
-const  char update_html[] PROGMEM =  R"rawliteral(
+const char update_html[] PROGMEM = R"rawliteral(
 <!DOCTYPE html><html lang=\"en\"><head><meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
 <title>Firmware Update</title>
 </head><body>
@@ -128,7 +131,7 @@ const  char update_html[] PROGMEM =  R"rawliteral(
 </body></html>
 )rawliteral";
 
-const  char home_html[] PROGMEM =  R"rawliteral(
+const char home_html[] PROGMEM = R"rawliteral(
     <!DOCTYPE html><html lang=\"en\"><head><meta name="viewport" content="width=device-width, initial-scale=0.8, user-scalable=no">
 	<title>{n}</title>
 
@@ -220,7 +223,7 @@ const  char home_html[] PROGMEM =  R"rawliteral(
   </html>
 )rawliteral";
 
-const  char redirect_html[] PROGMEM =  R"rawliteral(
+const char redirect_html[] PROGMEM = R"rawliteral(
 	<!DOCTYPE html>
 	<html lang="en">
 	<head>
@@ -239,4 +242,11 @@ const  char redirect_html[] PROGMEM =  R"rawliteral(
 	</html>
 	)rawliteral";
 
-   
+const char reboot_html[] PROGMEM = R"rawliteral(
+	<!DOCTYPE html><html lang=\"en\"><head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1, user-scalable=no\"/>
+	<title>ESP32 Reboot</title>
+	</head><body>
+	<h1>Rebooting ESP32</h1>
+	<p><a href='settings'>Return to  Settings after reboot has completed.</a></p>
+	</body></html>
+	)rawliteral";

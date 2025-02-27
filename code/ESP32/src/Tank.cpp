@@ -1,14 +1,14 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
-#include <WiFi.h>
 #include "Log.h"
+#include "WebLog.h"
 #include "Tank.h"
 #include "html.h"
-#include <WebSocketsServer.h>
-#include <EEPROM.h>
+
 
 namespace HydroFloat {
 
+	WebLog _webLog = WebLog();
 	WebSocketsServer _webSocket = WebSocketsServer(WSOCKET_HOME_PORT);
 
 	void Tank::setup() {
@@ -79,6 +79,7 @@ namespace HydroFloat {
 	void Tank::beginWeb()
 	{
 		_asyncServer.begin();
+		_webLog.begin(&_asyncServer);
 		_webSocket.begin();
 		_webSocket.onEvent([this](uint8_t num, WStype_t type, uint8_t *payload, size_t length)
 		{ 
@@ -101,7 +102,13 @@ namespace HydroFloat {
 			page.replace("{hp}", String(WSOCKET_HOME_PORT));
 			request->send(200, "text/html", page);
 		});
-
+		_asyncServer.on("/reboot", [this](AsyncWebServerRequest *request)	{ 
+			logd("resetModule");
+			String page = reboot_html;
+			request->send(200, "text/html", page.c_str());
+			delay(3000);
+			esp_restart(); 
+		 });
 		_asyncServer.onNotFound([this](AsyncWebServerRequest *request) {
 			if (APMode == _networkStatus) {
 				logd("Redirecting from: %s", request->url().c_str());
@@ -189,6 +196,7 @@ namespace HydroFloat {
 	void Tank::endWeb()	{
 		_asyncServer.end();
 		_webSocket.close();
+		_webLog.end();
 	}
 
 	void Tank::Process() {
@@ -220,6 +228,7 @@ namespace HydroFloat {
 			_oled.update(waterLevel, s4 ? overflow : s3 ? slag : s2 ? slead : s1 ? stop : off);
 			logd("broadcast JSON: %s", s.c_str());
 		}
+		_webLog.process();
 		_webSocket.loop();
 		_dnsServer.processNextRequest();
 		doBlink();
