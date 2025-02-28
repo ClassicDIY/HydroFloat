@@ -19,7 +19,7 @@ int weblog(const char *format, ...);
 #endif
 
 #if APP_LOG_LEVEL >= ARDUHAL_LOG_LEVEL_INFO
-#define logi(format, ...) weblog(ARDUHAL_SHORT_LOG_FORMAT(I, format), ##__VA_ARGS__)
+#define logi(format, ...) weblog(ARDUHAL_LOG_FORMAT(I, format), ##__VA_ARGS__)
 #else
 #define logi(format, ...)
 #endif

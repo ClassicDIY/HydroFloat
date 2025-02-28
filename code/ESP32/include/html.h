@@ -161,7 +161,7 @@ const char home_html[] PROGMEM = R"rawliteral(
 
 
 		function initWebSocket() {
-			const socket = new WebSocket('ws://' + window.location.hostname + ':{hp}');
+			const socket = new WebSocket('ws://' + window.location.hostname + '/ws_home');
 			socket.onmessage = function(event) {
 				const gpioValues = JSON.parse(event.data);
 				Gauge.Collection.get('CW_gauge').setValue(gpioValues.level)

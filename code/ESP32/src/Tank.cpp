@@ -8,8 +8,10 @@
 
 namespace HydroFloat {
 
-	WebLog _webLog = WebLog();
-	WebSocketsServer _webSocket = WebSocketsServer(WSOCKET_HOME_PORT);
+	static WebLog _webLog;
+	static DNSServer _dnsServer;
+	static AsyncWebServer _asyncServer(ASYNC_WEBSERVER_PORT);
+	static AsyncWebSocket _webSocket("/ws_home");
 
 	void Tank::setup() {
 		logd("setup");
@@ -80,17 +82,37 @@ namespace HydroFloat {
 	{
 		_asyncServer.begin();
 		_webLog.begin(&_asyncServer);
-		_webSocket.begin();
-		_webSocket.onEvent([this](uint8_t num, WStype_t type, uint8_t *payload, size_t length)
-		{ 
-			if (type == WStype_DISCONNECTED) {
-				logi("[%u] Home Page Disconnected!", num);
-				_networkStatus = APMode;
-			}
-			else if (type == WStype_CONNECTED) {
-				logi("[%u] Home Page Connected!", num);
+
+		_asyncServer.addHandler(&_webSocket).addMiddleware([this](AsyncWebServerRequest *request, ArMiddlewareNext next) {
+			// ws.count() is the current count of WS clients: this one is trying to upgrade its HTTP connection
+			if (_webSocket.count() > 1) {
+			  // if we have 2 clients or more, prevent the next one to connect
+			  request->send(503, "text/plain", "Server is busy");
+			} else {
+			  // process next middleware and at the end the handler
+			  next();
+			} 
+		});
+		_webSocket.onEvent([this](AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len) {
+			(void)len;
+		
+			if (type == WS_EVT_CONNECT) {
+				// logi("Home Page Connected!");
 				_lastWaterLevel = -1; //force a broadcast
 				_networkStatus = WSMode;
+				client->setCloseClientOnQueueFull(false);
+				// client->ping();
+		
+			} else if (type == WS_EVT_DISCONNECT) {
+				// logi("Home Page Disconnected!");
+				_networkStatus = APMode;
+		
+			} else if (type == WS_EVT_ERROR) {
+				loge("ws error");
+		
+			// } else if (type == WS_EVT_PONG) {
+			// 	logd("ws pong");
+	
 			} 
 		});
 
@@ -99,7 +121,6 @@ namespace HydroFloat {
 			String page = home_html;
 			page.replace("{n}", _SSID);
 			page.replace("{v}", CONFIG_VERSION);
-			page.replace("{hp}", String(WSOCKET_HOME_PORT));
 			request->send(200, "text/html", page);
 		});
 		_asyncServer.on("/reboot", [this](AsyncWebServerRequest *request)	{ 
@@ -195,7 +216,7 @@ namespace HydroFloat {
 
 	void Tank::endWeb()	{
 		_asyncServer.end();
-		_webSocket.close();
+		_webSocket.closeAll();
 		_webLog.end();
 	}
 
@@ -224,12 +245,18 @@ namespace HydroFloat {
 			doc["relay3"] = digitalRead(RELAY_3) ? "on" : "off";
 			doc["relay4"] = digitalRead(RELAY_4) ? "on" : "off";
 			serializeJson(doc, s);
-			_webSocket.broadcastTXT(s);
+			_webSocket.textAll(s);
 			_oled.update(waterLevel, s4 ? overflow : s3 ? slag : s2 ? slead : s1 ? stop : off);
 			logd("broadcast JSON: %s", s.c_str());
 		}
 		_webLog.process();
-		_webSocket.loop();
+		uint32_t now = millis();
+		if (now - _lastHeap >= 2000)
+		{
+			_lastHeap = now;
+			// cleanup disconnected clients or too many clients
+			_webSocket.cleanupClients();
+		}
 		_dnsServer.processNextRequest();
 		doBlink();
 		return;

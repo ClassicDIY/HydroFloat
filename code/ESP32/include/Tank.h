@@ -1,11 +1,10 @@
 #pragma once
 #include <Arduino.h>
 #include <EEPROM.h>
-#include <DNSServer.h>
 #include <AsyncTCP.h>
 #include <WiFi.h>
+#include <DNSServer.h>
 #include <ESPAsyncWebServer.h>
-#include <WebSocketsServer.h>
 #include "Enumerations.h"
 #include "html.h"
 #include "OTA.h"
@@ -40,12 +39,11 @@ namespace HydroFloat
 		void saveToEEPROM(const String &jsonString);
 		String loadFromEEPROM();
 		OTA _OTA = OTA();
-		DNSServer _dnsServer = DNSServer();
-		AsyncWebServer _asyncServer = AsyncWebServer(ASYNC_WEBSERVER_PORT);
-		WebSocketsServer _webSocket = WebSocketsServer(WSOCKET_HOME_PORT);
+
 		AnalogSensor _Sensor = AnalogSensor(SensorPin);
 		float _lastWaterLevel = 0;
 		Oled _oled = Oled();
+		uint32_t _lastHeap = 0;
 	};
 }
 

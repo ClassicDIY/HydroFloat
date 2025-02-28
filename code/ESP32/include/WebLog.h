@@ -4,7 +4,6 @@
 #include "esp_log.h"
 #include <time.h>
 #include "defines.h"
-#include <WebSocketsServer.h>
 #include <ESPAsyncWebServer.h>
 
 // Store HTML content with JavaScript to receive serial log data via WebSocket
@@ -14,7 +13,7 @@ const char web_serial_html[] PROGMEM = R"rawliteral(
 	  <script>
 	
 		function initWebSocket() {
-			const socket = new WebSocket('ws://' + window.location.hostname + ':7668');
+			const socket = new WebSocket('ws://' + window.location.hostname + '/ws_log');
 			socket.onmessage = function(event) {
 				document.getElementById('log').innerText += event.data;
 			};
@@ -51,4 +50,5 @@ public:
 	void process();
 
 private:
+	uint32_t _lastHeap = 0;
 };
