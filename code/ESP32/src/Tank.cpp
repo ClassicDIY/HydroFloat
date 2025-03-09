@@ -75,14 +75,7 @@ namespace HydroFloat {
 			logd("AP IP address: %s", IP.toString().c_str());
 			_dnsServer.start(DNS_PORT, "*", IP);
 			beginWeb();
-		}	
-	}
-
-	void Tank::beginWeb()
-	{
-		_asyncServer.begin();
-		_webLog.begin(&_asyncServer);
-
+		}
 		_asyncServer.addHandler(&_webSocket).addMiddleware([this](AsyncWebServerRequest *request, ArMiddlewareNext next) {
 			// ws.count() is the current count of WS clients: this one is trying to upgrade its HTTP connection
 			if (_webSocket.count() > 1) {
@@ -143,7 +136,8 @@ namespace HydroFloat {
 
 		_asyncServer.on("/settings", HTTP_GET, [this](AsyncWebServerRequest *request) {
 			logd("settings");
-			String page = settings_html;
+			String page = head_html;
+			page += settings_html;
 			page.replace("{n}", _SSID);
 			page.replace("{v}", CONFIG_VERSION);
 			page.replace("{ssid}", _SSID);
@@ -157,7 +151,8 @@ namespace HydroFloat {
 
 		_asyncServer.on("/config", HTTP_GET, [this](AsyncWebServerRequest *request) {
 			logd("config");
-			String page = config_html;
+			String page = head_html;
+			page += config_html;
 			page.replace("{n}", _SSID);
 			page.replace("{v}", CONFIG_VERSION);
 			page.replace("{ssid}", _SSID);
@@ -200,7 +195,8 @@ namespace HydroFloat {
 			String jsonString;
 			serializeJson(doc, jsonString);
 			saveToEEPROM(jsonString);
-			String page = settings_html;
+			String page = head_html;
+			page += settings_html;
 			page.replace("{n}", _SSID);
 			page.replace("{v}", CONFIG_VERSION);
 			page.replace("{ssid}", _SSID);
@@ -211,6 +207,14 @@ namespace HydroFloat {
 			page.replace("{stop}", String(stopLevel));
 			request->send(200, "text/html", page);
 		});
+
+	}
+
+	void Tank::beginWeb()
+	{
+		_asyncServer.begin();
+		_webLog.begin(&_asyncServer);
+
 		_OTA.begin(&_asyncServer);
 	}
 

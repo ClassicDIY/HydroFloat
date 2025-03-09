@@ -2,39 +2,78 @@
 
 #include "Arduino.h"
 
-const char settings_html[] PROGMEM = R"rawliteral(
+const char head_html[] PROGMEM = R"rawliteral(
 	<!DOCTYPE html><html lang=\"en\"><head><meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
 	<title>{n}</title>
 
 	<style>
-	.c{text-align: center;} 
-	.center-flex {
-		display: grid;
-		place-items: center;
-		height: 100%; 
-	}
+		.c{text-align: center;} 
+		.center-flex {
+			display: grid;
+			place-items: center;
+		}
+		.form-group {
+			display: flex;
+			align-items: center;
+			margin-bottom: 10px;
+			width: 320px;
+		}
 
-	.fld
-	{
-		margin-left: 20px;
-		color: #000080;
-		background-color: #FFD700;
-		clear: both;
-		text-align: center;
-		font-size:larger;
-		background: transparent;
-		display: inline-block;
-	}
-	body{text-align: center;font-family:verdana;} 
-	fieldset{border-radius:0.3rem;margin: 0px;width:50%; align: center;}
+		.form-group label {
+			width: 150px; /* Adjust the width as needed */
+		}
+
+		.form-group input[type="text"] {
+			width: 120px;
+		}
+		.form-group input[type="number"] {
+			width: 60px;
+		}
+		body {
+			font-family: apercu-pro, -apple-system, system-ui, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+			padding: 1em;
+			line-height: 1em;
+			font-weight: 100;
+		}
+		button{
+		border:0;
+		border-radius:0.3rem;
+		background-color:#16A1E7;
+		color:#fff;
+		line-height:2.4rem;
+		font-size:1.2rem;
+		width:100%;
+		align: center;
+		} 
+
+		.fld
+		{
+			margin-left: 20px;
+			color: #000080;
+			background-color: #FFD700;
+			clear: both;
+			text-align: center;
+			font-size:larger;
+			background: transparent;
+			display: inline-block;
+		}
+		fieldset{border-radius:0.3rem;margin: 0px;width:50%; align: center;}
+		#config {
+			width: 500px;
+			margin: 0 auto;
+		}
 	</style>
-
 	</head><body>
+		<div id="config">
 		<div>
 			<h2>{n}</h2>
 			<div style='font-size: .6em;'>Firmware config version '{v}'</div>
 			<hr>
 		</div>
+		
+	)rawliteral";
+
+	const char settings_html[] PROGMEM = R"rawliteral(
 		<div class="center-flex">
 			<fieldset id="network"><legend>Network</legend>
 				<p><div class="fld">SSID: {ssid}</div></p>
@@ -50,53 +89,11 @@ const char settings_html[] PROGMEM = R"rawliteral(
 			<p><a href="/config">Configuration</a></p>
 			<p><a href='/'>Return to home page.</a></p>
 
-		</div>
-	</body></html>
+			</div></div>
+		</body></html>
 	)rawliteral";
 
 const char config_html[] PROGMEM = R"rawliteral(
-	<!DOCTYPE html><html lang=\"en\"><head><meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-	<title>{n}</title>
-
-	<style>
-		.de{background-color:#ffaaaa;} 
-		.em{font-size:0.8em;color:#bb0000;padding-bottom:0px;} 
-		.c{text-align: center;} 
-		.center-flex {
-			display: grid;
-			place-items: center;
-			height: 100%; 
-		}
-
-        .form-group {
-            display: flex;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .form-group label {
-            width: 150px; /* Adjust the width as needed */
-        }
-
-        .form-group input[type="text"] {
-            width: 120px;
-		}
-		.form-group input[type="number"] {
-            width: 40px;
-		}
-		body{text-align: center;font-family:verdana;} 
-		button{border:0;border-radius:0.3rem;background-color:#16A1E7;color:#fff;line-height:2.4rem;font-size:1.2rem;width:50%;align: center;} 
-		fieldset{border-radius:0.3rem;margin: 0px;width:100%;}
-		.hide{display: none;}
-	</style>
-
-	</head><body>
-		<div>
-			<h2>{n}</h2>
-			<div style='font-size: .6em;'>Firmware config version '{v}'</div>
-			<hr>
-		</div>
-
 		<div class="center-flex">
 		<form action='/submit' method='post'>
 		<fieldset id="network"><legend>Network</legend>
@@ -115,8 +112,8 @@ const char config_html[] PROGMEM = R"rawliteral(
 		<p><a href='/'>Return to home page.</a></p>
 		<p><a href='settings'>Return to Settings</a></p>
 		<p><a href='reboot'>Reboot ESP32</a></p>
-		</div>
-	</body></html>
+		</div></div>
+		</body></html>
 	)rawliteral";
 
 const char update_html[] PROGMEM = R"rawliteral(
@@ -137,7 +134,12 @@ const char home_html[] PROGMEM = R"rawliteral(
 
 	<style>
 		.c{text-align: center;} 
-		body{text-align: center;font-family:verdana;} 
+		body {
+            font-family: apercu-pro, -apple-system, system-ui, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+            padding: 1em;
+            line-height: 1em;
+            font-weight: 100;
+        } 
 		.hide{display: none;}
 
 		.box {
@@ -150,6 +152,10 @@ const char home_html[] PROGMEM = R"rawliteral(
 			align-items: center;  /* Vertically center the content */
 			justify-content: center; /* Horizontally center the content */
 			border: 1px solid #000; /* Added a border for better visibility */
+		}
+		#config {
+			width: 500px;
+			margin: 0 auto;
 		}
         </style>
 
@@ -188,13 +194,14 @@ const char home_html[] PROGMEM = R"rawliteral(
       	</script>
     </head>
   <body>
+  <div id="config">
     <div>
 		<h2>{n}</h2>
 		<div style='font-size: .6em;'>Firmware config version '{v}'</div>
 		<hr>
 	</div>
 	<div>
-    <canvas id="CW_gauge" width="450" height="450"
+    <canvas id="CW_gauge" width="420" height="420"
                data-type="canv-gauge"
                data-title="Water Level"
                data-major-ticks="0 10 20 30 40 50 60 70 80 90 100"
@@ -218,7 +225,7 @@ const char home_html[] PROGMEM = R"rawliteral(
 		<hr>
 		<p><a href='settings'>View Current Settings</a></p>
 	</div>
-
+	</div>
   </body>
   </html>
 )rawliteral";
