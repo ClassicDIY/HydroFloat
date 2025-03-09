@@ -7,112 +7,123 @@ const char head_html[] PROGMEM = R"rawliteral(
 	<title>{n}</title>
 
 	<style>
-		.c{text-align: center;} 
-		.center-flex {
-			display: grid;
-			place-items: center;
-		}
-		.form-group {
-			display: flex;
-			align-items: center;
-			margin-bottom: 10px;
-			width: 320px;
-		}
 
-		.form-group label {
-			width: 150px; /* Adjust the width as needed */
-		}
+        body {
+            font-family: apercu-pro, -apple-system, system-ui, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+            line-height: 1em;
+            font-weight: 100;
+        }
+        .container {
+            display: flex;
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+        }
+        .form-group {
+            margin-bottom: 10px;
+            margin-top: 10px;
+            display: flex;
+            flex-direction: column;
+            height: 100%; 
+			width:100%;
+        }
+        .fs {
+            display: inline-block;
+            border-radius:0.3rem;
+            margin: 0px;
+            width:92%; 
+        }
+        .fld {
+            color: #000080;
+            clear: both;
+            display: flex;
+            text-align: left; 
+        }
+        .fld label {
+            width: 50%;
+            text-align: right;
+            margin-right: 10px;
+        }
+        .fld input[type="text"],
+        .fld input[type="number"] {
+            flex: 1;
+            width: 50%;
+        }
+        button{
+            border:0;
+            border-radius:0.3rem;
+            background-color:#16A1E7;
+            color:#fff;
+            line-height:2.4rem;
+            font-size:1.2rem;
+            width:100%;
 
-		.form-group input[type="text"] {
-			width: 120px;
-		}
-		.form-group input[type="number"] {
-			width: 60px;
-		}
-		body {
-			font-family: apercu-pro, -apple-system, system-ui, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
-			padding: 1em;
-			line-height: 1em;
-			font-weight: 100;
-		}
-		button{
-		border:0;
-		border-radius:0.3rem;
-		background-color:#16A1E7;
-		color:#fff;
-		line-height:2.4rem;
-		font-size:1.2rem;
-		width:100%;
-		align: center;
+            margin-top: 10px;
 		} 
-
-		.fld
-		{
-			margin-left: 20px;
-			color: #000080;
-			background-color: #FFD700;
-			clear: both;
-			text-align: center;
-			font-size:larger;
-			background: transparent;
-			display: inline-block;
-		}
-		fieldset{border-radius:0.3rem;margin: 0px;width:50%; align: center;}
-		#config {
-			width: 500px;
+        .hide{display: none;}
+        .ver {
+            font-size: .6em;
+        }
+        #config {
+			width: 400px;
 			margin: 0 auto;
+            align: center;
 		}
-	</style>
+    </style>
 	</head><body>
 		<div id="config">
 		<div>
 			<h2>{n}</h2>
-			<div style='font-size: .6em;'>Firmware config version '{v}'</div>
+			<div class="ver">Firmware config version '{v}'</div>
 			<hr>
 		</div>
-		
+		<div class="container">
+		<div class="form-group">
 	)rawliteral";
 
 	const char settings_html[] PROGMEM = R"rawliteral(
-		<div class="center-flex">
-			<fieldset id="network"><legend>Network</legend>
-				<p><div class="fld">SSID: {ssid}</div></p>
-				<p><div class="fld">AP Password: {appw}</div></p>
-			</fieldset>
-			<fieldset id="levels"><legend>Levels</legend>
-				<p><div class="fld">Overflow: {of}</div></p>
-				<p><div class="fld">Start Lag: {slag}</div></p>
-				<p><div class="fld">Start Lead: {slead}</div></p>
-				<p><div class="fld">Stop: {stop}</div></p>
-			</fieldset>
-			<p><a href='/log' target='_blank'>Web Log</a></p>
-			<p><a href="/config">Configuration</a></p>
-			<p><a href='/'>Return to home page.</a></p>
+			<div class="center-flex">
+				<fieldset id="network"><legend>Network</legend>
+					<p><div class="fld">SSID: {ssid}</div></p>
+					<p><div class="fld">AP Password: {appw}</div></p>
+				</fieldset>
+				<fieldset id="levels"><legend>Levels</legend>
+					<p><div class="fld">Overflow: {of}</div></p>
+					<p><div class="fld">Start Lag: {slag}</div></p>
+					<p><div class="fld">Start Lead: {slead}</div></p>
+					<p><div class="fld">Stop: {stop}</div></p>
+				</fieldset>
+				<p><a href='/log' target='_blank'>Web Log</a></p>
+				<p><a href="/config">Configuration</a></p>
+				<p><a href='/'>Return to home page.</a></p>
 
-			</div></div>
+			</div>
+				
+		</div></div></div>
 		</body></html>
 	)rawliteral";
 
 const char config_html[] PROGMEM = R"rawliteral(
-		<div class="center-flex">
-		<form action='/submit' method='post'>
-		<fieldset id="network"><legend>Network</legend>
-		<p><div class="form-group"><label for="ssid">SSID</label><input type="text" id="ssid" name="ssid" value={ssid} required maxlength="32"></div></p>
-		<p><div class="form-group"><label for="appw">AP Password</label><input type="text" id="appw" name="appw" value={appw} minlength="8" required maxlength="32"></div></p>
-		</fieldset>
-		<fieldset id="levels"><legend>Level</legend>
-		<p><div class="form-group"><label for="overflow">Overflow</label><input type="number" id="overflow" name="overflow" placeholder="1..100" value={of} min="1" max="100" required step="1"></div></p>
-		<p><div class="form-group"><label for="slag">Start Lag</label><input type="number" id="slag" name="slag" placeholder="1..100" value={slag} min="1" max="100" required step="1"></div></p>
-		<p><div class="form-group"><label for="slead">Start Lead</label><input type="number" id="slead" name="slead" placeholder="1..100" value={slead} min="1" max="100" required step="1"></div></p>
-		<p><div class="form-group"><label for="stop">Stop</label><input type="number" id="stop" name="stop" placeholder="1..100" value={stop} min="1" max="100" required step="1"></div></p>
-		</fieldset>
-		<button type="submit" style="margin-top: 10px;">Apply</button>
-		</form>
-		<p><a href='update'>Firmware update</a></p>
-		<p><a href='/'>Return to home page.</a></p>
-		<p><a href='settings'>Return to Settings</a></p>
-		<p><a href='reboot'>Reboot ESP32</a></p>
-		</div></div>
+			<div class="center-flex">
+				<form action='/submit' method='post'>
+				<fieldset id="network"><legend>Network</legend>
+				<p><div class="fld"><label for="ssid">SSID</label><input type="text" id="ssid" name="ssid" value={ssid} required maxlength="32"></div></p>
+				<p><div class="fld"><label for="appw">AP Password</label><input type="text" id="appw" name="appw" value={appw} minlength="8" required maxlength="32"></div></p>
+				</fieldset>
+				<fieldset id="levels"><legend>Level</legend>
+				<p><div class="fld"><label for="overflow">Overflow</label><input type="number" id="overflow" name="overflow" placeholder="1..100" value={of} min="1" max="100" required step="1"></div></p>
+				<p><div class="fld"><label for="slag">Start Lag</label><input type="number" id="slag" name="slag" placeholder="1..100" value={slag} min="1" max="100" required step="1"></div></p>
+				<p><div class="fld"><label for="slead">Start Lead</label><input type="number" id="slead" name="slead" placeholder="1..100" value={slead} min="1" max="100" required step="1"></div></p>
+				<p><div class="fld"><label for="stop">Stop</label><input type="number" id="stop" name="stop" placeholder="1..100" value={stop} min="1" max="100" required step="1"></div></p>
+				</fieldset>
+				<button type="submit" >Apply</button>
+				</form>
+				<p><a href='update'>Firmware update</a></p>
+				<p><a href='/'>Return to home page.</a></p>
+				<p><a href='settings'>Return to Settings</a></p>
+				<p><a href='reboot'>Reboot ESP32</a></p>
+			</div>
+		</div></div></div>
 		</body></html>
 	)rawliteral";
 
