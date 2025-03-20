@@ -23,3 +23,39 @@
 #define startLeadLevel_default 40
 #define startLagLevel_default 60
 #define overflowLevel_default 80
+
+#define SensorPin A0 // 4-20 Sensor using 2 X 270Ω resistors in parallel to get 135Ω
+#define SensorVoltageMin 540 // Mininum output voltage from Sensor in mV (135 * .004 = 540)
+#define SensorVoltageMax 2700 // Maximum output voltage from Sensor in mV (135 * .02 = 2700).
+
+#ifdef ESP32_X4_Relay_board
+    #define SDA_PIN GPIO_NUM_21 //OLED Display SDA and SLC pins
+    #define SLC_PIN GPIO_NUM_22
+    #define RELAY_1 32 //RELAY GPIO switches
+    #define RELAY_2 33
+    #define RELAY_3 25
+    #define RELAY_4 26
+    #define WIFI_STATUS_PIN 23 //LED Pin on the ESP32 X4 Relay board
+    #define FACTORY_RESET_PIN 4 // Clear NVRAM
+
+#elif ESP32_Lilygo_TRelay_board
+    #define SDA_PIN GPIO_NUM_15 //OLED Display SDA and SLC pins
+    #define SLC_PIN GPIO_NUM_14
+    #define RELAY_1 21 // RELAY GPIO switches
+    #define RELAY_2 19
+    #define RELAY_3 18
+    #define RELAY_4 05
+    #define WIFI_STATUS_PIN 25 //LED Pin on the ESP32 Lilygo T-Relay board
+    #define FACTORY_RESET_PIN 4 // Clear NVRAM
+
+#else // Dev board
+    #define SDA_PIN GPIO_NUM_21 //OLED Display SDA and SLC pins
+    #define SLC_PIN GPIO_NUM_22
+    #define RELAY_1 32 // RELAY GPIO switches
+    #define RELAY_2 33
+    #define RELAY_3 25
+    #define RELAY_4 26
+    #define WIFI_STATUS_PIN 2 //LED Pin on the Dev board
+    #define FACTORY_RESET_PIN 4 // Clear NVRAM
+
+#endif

@@ -9,6 +9,7 @@ namespace HydroFloat
 {
 
     Oled::Oled()    {
+        Wire.begin(SDA_PIN, SLC_PIN);
         _oled = Adafruit_SSD1306(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
     }
 
