@@ -34,13 +34,13 @@ namespace HydroFloat
         _oled.setCursor(32,STATUS_Y);  
         char buffer[64];
         if(status == off)
-            strcpy(buffer, "         ");
+            strcpy(buffer, "Stop      ");
         else if(status == stop)
-            strcpy(buffer, "Stop");
+            strcpy(buffer, "Run       ");
         else if(status == slead)
             strcpy(buffer, "Start lead");
         else if(status == slag)
-            strcpy(buffer, "Start lag");        
+            strcpy(buffer, "Start lag ");        
         else if(status == overflow)
             strcpy(buffer, "Overflow");
         _oled.setCursor(xOffset(2, strlen(buffer)), STATUS_Y);

@@ -186,6 +186,7 @@ const char home_html[] PROGMEM = R"rawliteral(
 				document.getElementById(`relay3`).style.backgroundColor = (gpioValues.relay3 === 'on') ? 'green' : 'red';
 				document.getElementById(`relay2`).style.backgroundColor = (gpioValues.relay2 === 'on') ? 'green' : 'red';
 				document.getElementById(`relay1`).style.backgroundColor = (gpioValues.relay1 === 'on') ? 'green' : 'red';
+				document.getElementById(`relay1`).innerHTML = (gpioValues.relay1 === 'on') ? 'Run' : 'Stop';
 
 			};
 			socket.onerror = function(error) {
