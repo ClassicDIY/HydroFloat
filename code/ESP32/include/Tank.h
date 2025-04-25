@@ -42,7 +42,9 @@ namespace HydroFloat
 
 		AnalogSensor _Sensor = AnalogSensor(SensorPin);
 		float _lastWaterLevel = 0;
+		#ifndef EdgeBox
 		Oled _oled = Oled();
+		#endif
 		uint32_t _lastHeap = 0;
 	};
 }

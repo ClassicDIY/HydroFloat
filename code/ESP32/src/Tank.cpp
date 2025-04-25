@@ -5,6 +5,11 @@
 #include "Tank.h"
 #include "html.h"
 
+#ifdef EdgeBox
+#include <Wire.h>
+#include <Adafruit_ADS1X15.h>
+extern Adafruit_ADS1115 ads;
+#endif
 
 namespace HydroFloat {
 
@@ -20,9 +25,13 @@ namespace HydroFloat {
 		pinMode(RELAY_3, OUTPUT);
 		pinMode(RELAY_4, OUTPUT);
 		pinMode(FACTORY_RESET_PIN, INPUT_PULLUP);
+		#ifndef LOG_TO_SERIAL_PORT
 		pinMode(WIFI_STATUS_PIN, OUTPUT);
+		#endif
+		#ifndef EdgeBox
 		_oled.begin();
 		_oled.update(0, off);
+		#endif
 		EEPROM.begin(EEPROM_SIZE);
 		if (digitalRead(FACTORY_RESET_PIN) == LOW)
 		{
@@ -250,7 +259,9 @@ namespace HydroFloat {
 			doc["relay4"] = digitalRead(RELAY_4) ? "on" : "off";
 			serializeJson(doc, s);
 			_webSocket.textAll(s);
+			#ifndef EdgeBox
 			_oled.update(waterLevel, s4 ? overflow : s3 ? slag : s2 ? slead : s1 ? stop : off);
+			#endif
 			logd("broadcast JSON: %s", s.c_str());
 		}
 		_webLog.process();
@@ -262,7 +273,9 @@ namespace HydroFloat {
 			_webSocket.cleanupClients();
 		}
 		_dnsServer.processNextRequest();
+		#ifndef LOG_TO_SERIAL_PORT
 		doBlink();
+		#endif
 		return;
 	}
 

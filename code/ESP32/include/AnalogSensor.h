@@ -10,16 +10,17 @@ namespace HydroFloat
 	{
 	public:
 		
-		AnalogSensor(int sensorPin);
+		AnalogSensor(int channel);
 		~AnalogSensor();
-		std::string Pin();
 		float Level();
 
 	private:
-		int _sensorPin; // Defines the pin that the sensor is connected to
+		int _channel; // Defines the pin that the sensor is connected to
 		float AddReading(float val);
 		float _rollingSum;
 		int _numberOfSummations;
 		int _count;
+		uint32_t adcReadingMin = 2635;
+		uint32_t adcReadingMax = 13175;
 	};
 }
