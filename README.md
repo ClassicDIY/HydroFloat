@@ -28,7 +28,7 @@ Use 135Ω (2 X 270Ω in parallel) from A0 to GND
 FloatLevel black | A0 |
 
 <p align="left">
-  <img src="./Pictures/diagram.png" width="800"/>
+  <img src="./Pictures/Lilygo_diagram.png" width="800"/>
 </p>
 
 Used the following development tools;
