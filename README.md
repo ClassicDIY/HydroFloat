@@ -15,7 +15,7 @@
  
 This project is based on the ESP32, it works with a Submersible Level Sensor 4-20ma Pressure Sensors.
 
-|<a href="https://www.aliexpress.com/item/1005005275943365.html"> ESP32 X4 Relay Board</a>|<img src="./Pictures/Esp32_X4_Relay_Board.png" width="200"/>|
+|<a href="https://www.aliexpress.com/item/1005005275943365.html"> ESP32 X4 Relay Board</a>|<img src="./Pictures/Lilygo_Relay_Board.png" width="200"/>|
 |---|---|
 |<a href="https://www.aliexpress.com/item/1005006366841583.html"> Piezoelectric Submersible 4-20mA Level Sensor </a>|<img src="./Pictures/Sensor.png" width="200"/>|
 
