@@ -36,7 +36,7 @@ void inline Buzzer_PWM(uint16_t Time) // ledChannel：PWM Channe    dutyfactor:d
    ledcWrite(PWM_Channel, 0);
 }
 
-#define SensorPin A0
+#define SensorPin GPIO_NUM_3
 
 // UARTS
 #define U0_TXD GPIO_NUM_43
@@ -51,6 +51,7 @@ void inline Buzzer_PWM(uint16_t Time) // ledChannel：PWM Channe    dutyfactor:d
 #define I2C_SDA GPIO_NUM_47
 #define I2C_SCL GPIO_NUM_48
 
+#define NUM_RELAYS 6
 #define RELAY_1 GPIO_NUM_1
 #define RELAY_2 GPIO_NUM_2
 #define RELAY_3 GPIO_NUM_41
@@ -81,6 +82,7 @@ void inline GPIO_Init() {
 
 #define SensorPin A0
 
+#define NUM_RELAYS 4
 #define RELAY_1 GPIO_NUM_21 // RELAY GPIO switches
 #define RELAY_2 GPIO_NUM_19
 #define RELAY_3 GPIO_NUM_18
@@ -109,6 +111,7 @@ void inline GPIO_Init() {
 
 #define WIFI_STATUS_PIN GPIO_NUM_25  // LED Pin on the ESP32 Lilygo T-Relay board
 #define FACTORY_RESET_PIN GPIO_NUM_4 // Clear NVRAM
+#define NUM_RELAYS 6
 
 // HT74HC595
 #define HT74HC595_CLOCK GPIO_NUM_5
@@ -137,6 +140,7 @@ void inline GPIO_Init() {}
 #define SensorPin A0
 #define SDA_PIN GPIO_NUM_21 // OLED Display SDA and SLC pins
 #define SLC_PIN GPIO_NUM_22
+#define NUM_RELAYS 4
 #define RELAY_1 GPIO_NUM_32 // RELAY GPIO switches
 #define RELAY_2 GPIO_NUM_33
 #define RELAY_3 GPIO_NUM_25

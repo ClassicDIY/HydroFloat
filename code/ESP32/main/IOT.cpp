@@ -38,9 +38,6 @@ TimerHandle_t mqttReconnectTimer;
 static ModbusServerTCPasync _MBserver;
 static ModbusServerRTU _MBRTUserver(MODBUS_RTU_TIMEOUT);
 #endif
-#ifdef HasRS485
-ModbusClientRTU _MBclientRTU(RS485_RTS, MODBUS_RTU_REQUEST_QUEUE_SIZE);
-#endif
 static AsyncAuthenticationMiddleware basicAuth;
 
 // #pragma region Setup
@@ -86,15 +83,7 @@ void IOT::Init(IOTCallbackInterface *iotCB, AsyncWebServer *pwebServer) {
       Serial2.begin(_modbusBaudRate, conf, RS485_RXD, RS485_TXD);
       while (!Serial2) {
       }
-   } else if (_useModbusBridge) {
-      // Set up Serial2 connected to Modbus RTU Client
-      RTUutils::prepareHardwareSerial(Serial2);
-      SerialConfig conf = getSerialConfig(_modbusClientParity, _modbusClientStopBits);
-      logd("Serial baud: %d conf: 0x%x", _modbusClientBaudRate, conf);
-      Serial2.begin(_modbusClientBaudRate, conf, RS485_RXD, RS485_TXD);
-      while (!Serial2) {
-      }
-   }
+   } 
 #endif
 #ifdef HasMQTT
    mqttReconnectTimer = xTimerCreate("mqttTimer", pdMS_TO_TICKS(8000), pdFALSE, this, mqttReconnectTimerCF);
@@ -213,7 +202,6 @@ void IOT::Init(IOTCallbackInterface *iotCB, AsyncWebServer *pwebServer) {
                modbus.replace("{coilBase}", String(_coil_base_addr));
                modbus.replace("{discreteBase}", String(_discrete_input_base_addr));
                modbus.replace("{holdingRegBase}", String(_holding_register_base_addr));
-               modbus.replace("{modbusBridgechecked}", _useModbusBridge ? "checked" : "unchecked");
                modbus.replace("{RTU_CLIENT_9600}", _modbusClientBaudRate == 9600 ? "selected" : "");
                modbus.replace("{RTU_CLIENT_19200}", _modbusClientBaudRate == 19200 ? "selected" : "");
                modbus.replace("{RTU_CLIENT_38400}", _modbusClientBaudRate == 38400 ? "selected" : "");
@@ -338,10 +326,6 @@ void IOT::Init(IOTCallbackInterface *iotCB, AsyncWebServer *pwebServer) {
       if (request->hasParam("holdingRegBase", true)) {
          _holding_register_base_addr = request->getParam("holdingRegBase", true)->value().toInt();
       }
-      _useModbusBridge = request->hasParam("modbusBridgeCheckbox", true);
-      if (request->hasParam("clientRTUBaud", true)) {
-         _modbusClientBaudRate = request->getParam("clientRTUBaud", true)->value().toInt();
-      }
       if (request->hasParam("clientRTUParity", true)) {
          String sel = request->getParam("clientRTUParity", true)->value().c_str();
          _modbusClientParity = sel == "none" ? UART_PARITY_DISABLE : sel == "even" ? UART_PARITY_EVEN : UART_PARITY_ODD;
@@ -416,7 +400,6 @@ void IOT::loadSettings() {
       _coil_base_addr = iot["coilBase"].isNull() ? COIL_BASE_ADDRESS : iot["coilBase"].as<uint16_t>();
       _discrete_input_base_addr = iot["discreteBase"].isNull() ? DISCRETE_BASE_ADDRESS : iot["discreteBase"].as<uint16_t>();
       _holding_register_base_addr = iot["holdingRegBase"].isNull() ? HOLDING_REGISTER_BASE_ADDRESS : iot["holdingRegBase"].as<uint16_t>();
-      _useModbusBridge = iot["useModbusBridge"].isNull() ? false : iot["useModbusBridge"].as<bool>();
       _modbusClientBaudRate = iot["modbusClientBaudRate"].isNull() ? 9600 : iot["modbusClientBaudRate"].as<uint32_t>();
       _modbusClientParity = iot["modbusClientParity"].isNull() ? UART_PARITY_DISABLE : iot["modbusClientParity"].as<uart_parity_t>();
       _modbusClientStopBits = iot["modbusClientStopBits"].isNull() ? UART_STOP_BITS_1 : iot["modbusClientStopBits"].as<uart_stop_bits_t>();
@@ -461,7 +444,6 @@ void IOT::saveSettings() {
    iot["coilBase"] = _coil_base_addr;
    iot["discreteBase"] = _discrete_input_base_addr;
    iot["holdingRegBase"] = _holding_register_base_addr;
-   iot["useModbusBridge"] = _useModbusBridge;
    iot["modbusClientBaudRate"] = _modbusClientBaudRate;
    iot["modbusClientParity"] = _modbusClientParity;
    iot["modbusClientStopBits"] = _modbusClientStopBits;
@@ -647,28 +629,6 @@ void IOT::GoOnline() {
                _MBserver.start(_modbusPort, 5, 0); // listen for modbus requests
                logd("Modbus TCP started");
             }
-
-#ifdef HasRS485
-            if (ModbusBridgeEnabled()) {
-               _MBclientRTU.setTimeout(MODBUS_RTU_TIMEOUT);
-               _MBclientRTU.begin(Serial2);
-               _MBclientRTU.useModbusRTU();
-               _MBclientRTU.onDataHandler([this](ModbusMessage response, uint32_t token) {
-                  logv("RTU Response: serverID=%d, FC=%d, Token=%08X, length=%d", response.getServerID(), response.getFunctionCode(), token,
-                       response.size());
-                  return _iotCB->onModbusMessage(response);
-               });
-               _MBclientRTU.onErrorHandler([this](Modbus::Error mbError, uint32_t token) {
-                  logd("Modbus RTU (Token: %d) Error response: %02X - %s", token, (int)mbError, (const char *)ModbusError(mbError));
-                  if (_MBclientRTU.pendingRequests() > 2) {
-                     logd("Modbus RTU clearing queue!");
-                     _MBclientRTU.clearQueue();
-                     Serial2.flush();
-                  }
-                  return true;
-               });
-            }
-#endif
          } else {
             _MBRTUserver.begin(Serial2);
             _MBRTUserver.useModbusRTU();
@@ -1010,26 +970,6 @@ void IOT::registerMBTCPWorkers(FunctionCode fc, MBSworker worker) {
    } else {
       _MBRTUserver.registerWorker(_modbusID, fc, worker);
    }
-}
-
-boolean IOT::ModbusBridgeEnabled() { return _useModbusBridge && (_ModbusMode == TCP); }
-
-Modbus::Error IOT::SendToModbusBridgeAsync(ModbusMessage &request) {
-   Modbus::Error mbError = INVALID_SERVER;
-#ifdef HasRS485
-   if (ModbusBridgeEnabled()) {
-      uint32_t token = nextToken();
-      logv("SendToModbusBridge Token=%08X FC%d", token, request.getFunctionCode());
-      if (_MBclientRTU.pendingRequests() < MODBUS_RTU_REQUEST_QUEUE_SIZE) {
-         mbError = _MBclientRTU.addRequest(request, token);
-         mbError = SUCCESS;
-      } else {
-         mbError = REQUEST_QUEUE_FULL;
-      }
-      delay(100);
-   }
-#endif
-   return mbError;
 }
 
 uint16_t IOT::getMBBaseAddress(IOTypes type) {

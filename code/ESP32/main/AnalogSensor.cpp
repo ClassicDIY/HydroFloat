@@ -11,7 +11,7 @@ namespace CLASSICDIY{
 		_count = 0;
 		_numberOfSummations = 0;
 		_rollingSum = 0;
-		pinMode(channel, ANALOG);
+		// pinMode(channel, ANALOG);
 	}
 
 	AnalogSensor::~AnalogSensor()	{

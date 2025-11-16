@@ -33,8 +33,14 @@ class Tank : public IOTCallbackInterface {
    uint16_t startLagLevel = startLagLevel_default;
    uint16_t overflowLevel = overflowLevel_default;
 
+ protected:
+#ifdef HasMQTT
+   boolean PublishDiscoverySub(IOTypes type, const char *entityName, const char *unit_of_meas = nullptr, const char *icon = nullptr);
+#endif
  private:
    AnalogSensor _Sensor = AnalogSensor(SensorPin);
+   boolean _discoveryPublished = false;
+   String _lastMessagePublished;
    float _lastWaterLevel = 0;
 #ifdef Has_OLED_Display
    Oled _oled = Oled();

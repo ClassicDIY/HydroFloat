@@ -43,12 +43,8 @@ class IOT : public IOTServiceInterface {
 #endif
 
 #ifdef HasModbus
-   boolean ModbusBridgeEnabled();
    void registerMBTCPWorkers(FunctionCode fc, MBSworker worker);
-   Modbus::Error SendToModbusBridgeAsync(ModbusMessage &request);
    uint16_t getMBBaseAddress(IOTypes type);
-#else
-boolean ModbusBridgeEnabled() {return false;};
 #endif
 
  private:
@@ -109,8 +105,6 @@ boolean ModbusBridgeEnabled() {return false;};
    uart_parity_t _modbusParity = UART_PARITY_DISABLE;
    uart_stop_bits_t _modbusStopBits = UART_STOP_BITS_1;
    uint16_t _modbusID = 1;
-
-   bool _useModbusBridge = false;
    unsigned long _modbusClientBaudRate = 9600;
    uart_parity_t _modbusClientParity = UART_PARITY_DISABLE;
    uart_stop_bits_t _modbusClientStopBits = UART_STOP_BITS_1;
