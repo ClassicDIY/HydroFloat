@@ -5,7 +5,7 @@
 #include "Log.h"
 #include "Defines.h"
 
-namespace HydroFloat
+namespace CLASSICDIY
 {
 	class OTA
 	{

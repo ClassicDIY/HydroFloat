@@ -5,7 +5,7 @@
 #include <Adafruit_SSD1306.h>
 #include "Enumerations.h"
 
-namespace HydroFloat
+namespace CLASSICDIY
 {
     #define LEVEL_FONT 5
     #define STATUS_FONT 2
@@ -16,13 +16,9 @@ namespace HydroFloat
     class Oled
     {
     public:
-        Oled();
-        bool begin();
         void update(uint16_t level, relayStatus status);
 
     private:
-        Adafruit_SSD1306 _oled;
-        bool _initialized;
         uint8_t xOffset(uint8_t textSize, uint8_t numberOfCharaters);
     };
 

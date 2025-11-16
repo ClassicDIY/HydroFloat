@@ -1,8 +1,10 @@
 #pragma once
 
 #include <Arduino.h>
+#include <ArduinoJson.h>
 #include "esp_log.h"
 #include <time.h>
+#include "defines.h"
 
 int weblog(const char *format, ...);
 
@@ -49,6 +51,13 @@ void inline printLocalTime()
     buf[0] = 0;
     strftime(buf, 64, "%A, %B %d %Y %H:%M:%S", &timeinfo);
     logi("Date Time: %s", buf);
+#endif
+}
+
+void inline printFormattedJson(const JsonDocument &doc) {
+#if APP_LOG_LEVEL >= ARDUHAL_LOG_LEVEL_DEBUG
+   serializeJsonPretty(doc, Serial);
+   Serial.println(); // Ensure newline after output
 #endif
 }
 

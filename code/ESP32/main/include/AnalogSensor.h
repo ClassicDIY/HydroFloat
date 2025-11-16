@@ -4,7 +4,7 @@
 #include <string>
 #include "defines.h"
 
-namespace HydroFloat
+namespace CLASSICDIY
 {
 	class AnalogSensor
 	{

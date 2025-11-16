@@ -6,14 +6,14 @@
 #include "OTA.h"
 
 
-namespace HydroFloat {
+namespace CLASSICDIY {
 
 	void OTA::begin(AsyncWebServer* asyncServer) {
         _pAsyncServer = asyncServer;
         _pAsyncServer->on("/update", HTTP_GET, [](AsyncWebServerRequest *request) {
 			String page = update_firmware_html;
 			page.replace("{n}", TAG);
-			page.replace("{v}", CONFIG_VERSION);
+			page.replace("{v}", APP_VERSION);
 			request->send(200, "text/html", page);
         });
         // Handle firmware upload
@@ -46,4 +46,4 @@ namespace HydroFloat {
     }
 
 
-} // namespace HydroFloat
+} // namespace CLASSICDIY
