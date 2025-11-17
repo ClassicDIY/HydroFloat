@@ -44,7 +44,7 @@ void Device::Run() {
    } else if (!_running) {
       HT74HC595->set(7, LOW);
       HT74HC595->set(6, HIGH);
-      _running = true; 
+      _running = true;
    }
 }
 
@@ -53,6 +53,8 @@ void Device::SetRelay(const uint8_t index, const uint8_t value) { HT74HC595->set
 boolean Device::GetRelay(const uint8_t index) { return HT74HC595->get(index); }
 
 #elif Lilygo_Relay_4CH
+
+gpio_num_t _relays[NUM_RELAYS] = {RELAY_1, RELAY_2, RELAY_3, RELAY_4};
 
 void Device::Init() {
    Wire.begin(I2C_SDA, I2C_SCL);
@@ -63,10 +65,9 @@ void Device::Init() {
       oled_display.clearDisplay();
    }
 #endif
-   pinMode(RELAY_1, OUTPUT);
-   pinMode(RELAY_2, OUTPUT);
-   pinMode(RELAY_3, OUTPUT);
-   pinMode(RELAY_4, OUTPUT);
+   for (int i = 0; i < NUM_RELAYS; i++) {
+      pinMode(_relays[i], OUTPUT);
+   }
    pinMode(FACTORY_RESET_PIN, INPUT_PULLUP);
    pinMode(WIFI_STATUS_PIN, OUTPUT);
 }
@@ -86,11 +87,13 @@ void Device::Run() {
    }
 }
 
-void Device::SetRelay(const uint8_t index, const uint8_t value) { digitalWrite(index, value); }
+void Device::SetRelay(const uint8_t index, const uint8_t value) { digitalWrite(_relays[index], value); }
 
-boolean Device::GetRelay(const uint8_t index) { return digitalRead(index) == 0 ? false : true; }
+boolean Device::GetRelay(const uint8_t index) { return digitalRead(_relays[index]) == 0 ? false : true; }
 
 #elif Waveshare_Relay_6CH
+
+gpio_num_t _relays[NUM_RELAYS] = {RELAY_1, RELAY_2, RELAY_3, RELAY_4, RELAY_5, RELAY_6};
 
 void Device::Init() {
    Wire.begin(I2C_SDA, I2C_SCL);
@@ -101,12 +104,9 @@ void Device::Init() {
       oled_display.clearDisplay();
    }
 #endif
-   pinMode(RELAY_1, OUTPUT);
-   pinMode(RELAY_2, OUTPUT);
-   pinMode(RELAY_3, OUTPUT);
-   pinMode(RELAY_4, OUTPUT);
-   pinMode(RELAY_5, OUTPUT);
-   pinMode(RELAY_6, OUTPUT);
+   for (int i = 0; i < NUM_RELAYS; i++) {
+      pinMode(_relays[i], OUTPUT);
+   }
    pinMode(RGB_LED_PIN, OUTPUT);     // Initialize the control GPIO of RGB
    pinMode(GPIO_PIN_Buzzer, OUTPUT); // Initialize the control GPIO of Buzzer
 
@@ -123,14 +123,15 @@ void Device::Run() {
          _lastBlinkTime = now;
          neopixelWrite(RGB_LED_PIN, _blinkStateOn ? 60 : 0, _blinkStateOn ? 0 : 60, 0);
       }
-   } else {
+   } else if (!_running) {
       neopixelWrite(RGB_LED_PIN, 0, 0, 60);
+      _running = true;
    }
 }
 
-void Device::SetRelay(const uint8_t index, const uint8_t value) { digitalWrite(index, value); }
+void Device::SetRelay(const uint8_t index, const uint8_t value) { digitalWrite(_relays[index], value); }
 
-boolean Device::GetRelay(const uint8_t index) { return digitalRead(index) == 0 ? false : true; }
+boolean Device::GetRelay(const uint8_t index) { return digitalRead(_relays[index]) == 0 ? false : true; }
 
 void inline Buzzer_PWM(uint16_t Time) // ledChannel：PWM Channe    dutyfactor:dutyfactor
 {
