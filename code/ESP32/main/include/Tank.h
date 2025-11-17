@@ -3,13 +3,13 @@
 #include <ESPAsyncWebServer.h>
 #include "IOTCallbackInterface.h"
 #include "Enumerations.h"
-#include "Oled.h"
 #include "Log.h"
 #include "Defines.h"
+#include "Device.h"
 #include "AnalogSensor.h"
 
 namespace CLASSICDIY {
-class Tank : public IOTCallbackInterface {
+class Tank : public Device, public IOTCallbackInterface {
  public:
    Tank() {};
    void setup();
@@ -18,12 +18,7 @@ class Tank : public IOTCallbackInterface {
    void onMqttConnect();
    void onMqttMessage(char *topic, char *payload);
 #endif
-#ifdef HasModbus
-   bool onModbusMessage(ModbusMessage &msg);
-   void onNetworkConnect();
-#else
-   void onNetworkConnect() {}; // noop
-#endif
+   void onNetworkState(NetworkState state);
    void onSaveSetting(JsonDocument &doc);
    void onLoadSetting(JsonDocument &doc);
    void addApplicationConfigs(String &page);

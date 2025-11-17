@@ -4,11 +4,12 @@
 #ifdef HasModbus
 #include <ModbusMessage.h>
 #endif
+#include "Enumerations.h"
 
 namespace CLASSICDIY {
 class IOTCallbackInterface {
  public:
-   virtual void onNetworkConnect() = 0;
+   virtual void onNetworkState(NetworkState state) = 0;
    virtual void addApplicationConfigs(String &page);
    virtual void onSubmitForm(AsyncWebServerRequest *request);
    virtual void onSaveSetting(JsonDocument &doc);
@@ -16,9 +17,6 @@ class IOTCallbackInterface {
 #ifdef HasMQTT
    virtual void onMqttConnect() = 0;
    virtual void onMqttMessage(char *topic, char *payload) = 0;
-#endif
-#ifdef HasModbus
-   virtual bool onModbusMessage(ModbusMessage &msg);
 #endif
 };
 } // namespace CLASSICDIY

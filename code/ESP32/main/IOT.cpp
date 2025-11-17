@@ -20,6 +20,8 @@
 #include "IOT.html"
 #include "HelperFunctions.h"
 
+#include "GPIO_pins.h"
+
 #ifdef Has_OLED_Display
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
@@ -57,20 +59,13 @@ void IOT::Init(IOTCallbackInterface *iotCB, AsyncWebServer *pwebServer) {
       EEPROM.commit();
       saveSettings();
    }
-#else // use analog pin for factory reset
-   EEPROM.begin(EEPROM_SIZE);
-   uint16_t analogValue = analogRead(BUTTONS);
-   logd("button value (%d)", analogValue);
-   if (analogValue > 3000) {
-      logi("**********************Factory Reset*************************(%d)", analogValue);
-      EEPROM.write(0, 0);
-      EEPROM.commit();
-      saveSettings();
-   }
-#endif
-   else {
+      else {
       loadSettings();
    }
+#else // no facroty reset!
+   loadSettings();
+#endif
+
 #ifdef HasRS485
    if (RS485_RTS != -1) {
       pinMode(RS485_RTS, OUTPUT);
@@ -535,34 +530,6 @@ void IOT::Run() {
    } else if (_networkState == OnLine) {
       _webLog.process();
    }
-#ifdef WIFI_STATUS_PIN
-   // use LED if the log level is none (edgeBox shares the LED pin with the serial TX gpio)
-   // handle blink led, fast : NotConnected slow: AP connected On: Station connected
-   if (_networkState != OnLine) {
-      unsigned long binkRate = _networkState == ApState ? AP_BLINK_RATE : NC_BLINK_RATE;
-      unsigned long now = millis();
-      if (binkRate < now - _lastBlinkTime) {
-         _blinkStateOn = !_blinkStateOn;
-         _lastBlinkTime = now;
-         digitalWrite(WIFI_STATUS_PIN, _blinkStateOn ? HIGH : LOW);
-      }
-   } else {
-      digitalWrite(WIFI_STATUS_PIN, HIGH);
-   }
-#elif RGB_LED_PIN
-   if (_networkState != OnLine) {
-      unsigned long binkRate = _networkState == ApState ? AP_BLINK_RATE : NC_BLINK_RATE;
-      unsigned long now = millis();
-      if (binkRate < now - _lastBlinkTime) {
-         _blinkStateOn = !_blinkStateOn;
-         _lastBlinkTime = now;
-         RGB_Light(_blinkStateOn ? 60 : 0, _blinkStateOn ? 0 : 60, 0);
-      }
-   } else {
-      RGB_Light(0, 0, 60);
-   }
-#endif
-
    if (_needToReboot) {
       GoOffline();
       delay(500);
@@ -621,7 +588,6 @@ void IOT::GoOnline() {
          MDNS.addService("http", "tcp", ASYNC_WEBSERVER_PORT);
          logd("Active mDNS services: %d", MDNS.queryService("http", "tcp"));
       }
-      _iotCB->onNetworkConnect();
 #ifdef HasModbus
       if (_useModbus && !_MBserver.isRunning()) {
          if (_ModbusMode == TCP) {
@@ -746,6 +712,7 @@ void IOT::setState(NetworkState newState) {
    default:
       break;
    }
+   _iotCB->onNetworkState(newState);
 }
 
 void IOT::HandleIPEvent(int32_t event_id, void *event_data) {

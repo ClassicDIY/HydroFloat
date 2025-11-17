@@ -15,6 +15,7 @@ static AsyncWebSocket _webSocket("/ws_home");
 IOT _iot = IOT();
 
 void Tank::setup() {
+   Init();
    _iot.Init(this, &_asyncServer);
    _asyncServer.addHandler(&_webSocket).addMiddleware([this](AsyncWebServerRequest *request, ArMiddlewareNext next) {
       // ws.count() is the current count of WS clients: this one is trying to upgrade its HTTP connection
@@ -33,23 +34,23 @@ void Tank::setup() {
       page.replace("{v}", APP_VERSION);
       request->send(200, "text/html", page);
    });
-   _webSocket.onEvent(
-       [this](AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len) {
-          (void)len;
-          if (type == WS_EVT_CONNECT) {
-             // logi("Home Page Connected!");
-             _lastWaterLevel = -1; // force a broadcast
-             client->setCloseClientOnQueueFull(false);
-             // client->ping();
-          } else if (type == WS_EVT_DISCONNECT) {
-             // logi("Home Page Disconnected!");
-          } else if (type == WS_EVT_ERROR) {
-             loge("ws error");
+   _webSocket.onEvent([this](AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len) {
+      (void)len;
+      if (type == WS_EVT_CONNECT) {
+         // logi("Home Page Connected!");
+         _lastWaterLevel = -1; // force a broadcast
+         client->setCloseClientOnQueueFull(false);
+         // client->ping();
+      } else if (type == WS_EVT_DISCONNECT) {
+         // logi("Home Page Disconnected!");
+      } else if (type == WS_EVT_ERROR) {
+         loge("ws error");
 
-             // } else if (type == WS_EVT_PONG) {
-             // 	logd("ws pong");
-          }
-       });
+         // } else if (type == WS_EVT_PONG) {
+         // 	logd("ws pong");
+      }
+   });
+
 }
 
 void Tank::onSaveSetting(JsonDocument &doc) {
@@ -92,29 +93,36 @@ void Tank::onSubmitForm(AsyncWebServerRequest *request) {
 
 void Tank::Process() {
    _iot.Run();
+   Run(); // base class
    String s;
    float waterLevel = _Sensor.Level();
    if (waterLevel >= 0 && abs(_lastWaterLevel - waterLevel) > 1.0) // limit broadcast to 1% change
    {
+      JsonDocument doc;
+      doc.clear();
       waterLevel = waterLevel <= 1.0 ? 0 : waterLevel;
       _lastWaterLevel = waterLevel;
+      doc["level"] = waterLevel;
       boolean s1 = waterLevel > stopLevel;
       boolean s2 = waterLevel > startLeadLevel;
       boolean s3 = waterLevel > startLagLevel;
       boolean s4 = waterLevel > overflowLevel;
+      boolean s5 = false; // ToDo
+      boolean s6 = false;
+      SetRelay(0, s1 ? HIGH : LOW);
+      SetRelay(1, s2 ? HIGH : LOW);
+      SetRelay(2, s3 ? HIGH : LOW);
+      SetRelay(3, s4 ? HIGH : LOW);
+      SetRelay(4, s5 ? HIGH : LOW);
+      SetRelay(5, s6 ? HIGH : LOW);
 
-      digitalWrite(RELAY_1, s1);
-      digitalWrite(RELAY_2, s2);
-      digitalWrite(RELAY_3, s3);
-      digitalWrite(RELAY_4, s4);
+      doc["relay1"] = s1 ? "on" : "off";
+      doc["relay2"] = s2 ? "on" : "off";
+      doc["relay3"] = s3 ? "on" : "off";
+      doc["relay4"] = s4 ? "on" : "off";
+      doc["relay5"] = s5 ? "on" : "off";
+      doc["relay6"] = s6 ? "on" : "off";
 
-      JsonDocument doc;
-      doc.clear();
-      doc["level"] = waterLevel;
-      doc["relay1"] = digitalRead(RELAY_1) ? "on" : "off";
-      doc["relay2"] = digitalRead(RELAY_2) ? "on" : "off";
-      doc["relay3"] = digitalRead(RELAY_3) ? "on" : "off";
-      doc["relay4"] = digitalRead(RELAY_4) ? "on" : "off";
 #ifdef Has_OLED_Display
       _oled.update(waterLevel, s4 ? overflow : s3 ? slag : s2 ? slead : s1 ? stop : off);
 #endif
@@ -133,63 +141,65 @@ void Tank::Process() {
    }
    return;
 }
+
+void Tank::onNetworkState(NetworkState state) {
+   _networkState = state;
+   if (state == OnLine) {
 #ifdef HasModbus
-void Tank::onNetworkConnect() {
-   // READ_INPUT_REGISTER
-   auto modbusFC04 = [this](ModbusMessage request) -> ModbusMessage {
-      ModbusMessage response;
-      uint16_t addr = 0;
-      uint16_t words = 0;
-      request.get(2, addr);
-      request.get(4, words);
-      logd("READ_INPUT_REGISTER %d %d[%d]", request.getFunctionCode(), addr, words);
-      addr -= _iot.getMBBaseAddress(AnalogInputs);
-      if ((addr + words) == 1) { // just have the level
-         response.add(request.getServerID(), request.getFunctionCode(), (uint8_t)(words * 2));
-         response.add(_lastWaterLevel);
-      } else {
-         logw("READ_INPUT_REGISTER Address overflow: %d", (addr + words));
-         response.setError(request.getServerID(), request.getFunctionCode(), ILLEGAL_DATA_ADDRESS);
-      }
-      return response;
-   };
-   // READ_COIL
-   auto modbusFC01 = [this](ModbusMessage request) -> ModbusMessage {
-      ModbusMessage response;
-      uint16_t addr = 0;
-      uint16_t numCoils = 0;
-      request.get(2, addr, numCoils);
-      logd("READ_COIL %d %d[%d]", request.getFunctionCode(), addr, numCoils);
-      // Address overflow?
-      addr -= _iot.getMBBaseAddress(DigitalOutputs);
-      if ((addr + numCoils) <= NUM_RELAYS) {
-         CoilSet coils;
-         coils.Init(NUM_RELAYS);
-         coils.set(0, digitalRead(RELAY_1) == 0 ? false : true);
-         coils.set(1, digitalRead(RELAY_2) == 0 ? false : true);
-         coils.set(2, digitalRead(RELAY_3) == 0 ? false : true);
-         coils.set(3, digitalRead(RELAY_4) == 0 ? false : true);
-         vector<uint8_t> coilset = coils.slice(addr, NUM_RELAYS);
-         response.add(request.getServerID(), request.getFunctionCode(), (uint8_t)coilset.size(), coilset);
-      } else {
-         logw("READ_COIL Address overflow: %d", (addr + numCoils));
-         response.setError(request.getServerID(), request.getFunctionCode(), ILLEGAL_DATA_ADDRESS);
-      }
-      return response;
-   };
-   _iot.registerMBTCPWorkers(READ_INPUT_REGISTER, modbusFC04);
-   _iot.registerMBTCPWorkers(READ_COIL, modbusFC01);
-}
-bool Tank::onModbusMessage(ModbusMessage &msg) { return false; }
+      // READ_INPUT_REGISTER
+      auto modbusFC04 = [this](ModbusMessage request) -> ModbusMessage {
+         ModbusMessage response;
+         uint16_t addr = 0;
+         uint16_t words = 0;
+         request.get(2, addr);
+         request.get(4, words);
+         logd("READ_INPUT_REGISTER %d %d[%d]", request.getFunctionCode(), addr, words);
+         addr -= _iot.getMBBaseAddress(AnalogInputs);
+         if ((addr + words) == 1) { // just have the level
+            response.add(request.getServerID(), request.getFunctionCode(), (uint8_t)(words * 2));
+            response.add(_lastWaterLevel);
+         } else {
+            logw("READ_INPUT_REGISTER Address overflow: %d", (addr + words));
+            response.setError(request.getServerID(), request.getFunctionCode(), ILLEGAL_DATA_ADDRESS);
+         }
+         return response;
+      };
+      // READ_COIL
+      auto modbusFC01 = [this](ModbusMessage request) -> ModbusMessage {
+         ModbusMessage response;
+         uint16_t addr = 0;
+         uint16_t numCoils = 0;
+         request.get(2, addr, numCoils);
+         logd("READ_COIL %d %d[%d]", request.getFunctionCode(), addr, numCoils);
+         // Address overflow?
+         addr -= _iot.getMBBaseAddress(DigitalOutputs);
+         if ((addr + numCoils) <= NumberOfRelays()) {
+            CoilSet coils;
+            coils.Init(NumberOfRelays());
+            for (int i = 0; i < NumberOfRelays(); i++) {
+               coils.set(i, GetRelay(i) == 0 ? false : true);
+            }
+            vector<uint8_t> coilset = coils.slice(addr, NumberOfRelays());
+            response.add(request.getServerID(), request.getFunctionCode(), (uint8_t)coilset.size(), coilset);
+         } else {
+            logw("READ_COIL Address overflow: %d", (addr + numCoils));
+            response.setError(request.getServerID(), request.getFunctionCode(), ILLEGAL_DATA_ADDRESS);
+         }
+         return response;
+      };
+      _iot.registerMBTCPWorkers(READ_INPUT_REGISTER, modbusFC04);
+      _iot.registerMBTCPWorkers(READ_COIL, modbusFC01);
 #endif
+   }
+}
 
 #ifdef HasMQTT
 
 void Tank::onMqttConnect() {
    if (!_discoveryPublished) {
-      for (int i = 0; i < NUM_RELAYS; i++) {
+      for (int i = 0; i < NumberOfRelays(); i++) {
          std::stringstream ss;
-         ss << "relay" << i+1;
+         ss << "relay" << i + 1;
          if (PublishDiscoverySub(DigitalInputs, ss.str().c_str(), nullptr, "mdi:valve") == false) {
             return; // try later
          }

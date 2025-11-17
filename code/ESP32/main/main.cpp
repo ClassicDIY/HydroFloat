@@ -6,16 +6,15 @@
 using namespace CLASSICDIY;
 
 Tank *_tank = new Tank();
-#ifdef Has_OLED_Display
-Adafruit_SSD1306 oled_display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
-#endif
 
 void setup() {
-#if defined(Waveshare_Relay_6CH)
-   delay(5000);
-#endif
+   // wait for Serial to connect, give up after 5 seconds, USB may not be connected
+   unsigned long start = millis();
    Serial.begin(115200);
    while (!Serial) {
+      if (5000 < millis() - start) {
+         break;
+      }
    }
 
    logd("------------ESP32 specifications ---------------");
@@ -28,15 +27,6 @@ void setup() {
    logd("Heap Size: %d KB", ESP.getHeapSize() / 1024);
    logd("Free Heap: %d KB", ESP.getFreeHeap() / 1024);
    logd("------------ESP32 specifications ---------------");
-   GPIO_Init();
-   Wire.begin(I2C_SDA, I2C_SCL);
-#ifdef Has_OLED_Display
-   if (!oled_display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
-      loge("SSD1306 allocation failed");
-   } else {
-      oled_display.clearDisplay();
-   }
-#endif
    esp_task_wdt_init(60, true); // 60-second timeout, panic on timeout
    esp_task_wdt_add(NULL);
    _tank->setup();

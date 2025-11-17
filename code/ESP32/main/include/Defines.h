@@ -1,8 +1,6 @@
 
 #pragma once
 
-#include "GPIO_pins.h"
-
 #define TAG "HydroFloat"
 
 #define NTP_SERVER "pool.ntp.org"

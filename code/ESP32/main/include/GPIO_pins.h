@@ -1,10 +1,11 @@
 #pragma once
 #include <Arduino.h>
+#include "Log.h"
 
 #ifdef ESP_32Dev
 
-#define Relays 2 // number of relays
-#define WIFI_STATUS_PIN GPIO_NUM_2 // LED Pin
+#define Relays 2                     // number of relays
+#define WIFI_STATUS_PIN GPIO_NUM_2   // LED Pin
 #define FACTORY_RESET_PIN GPIO_NUM_4 // Clear NVRAM
 
 // I2C
@@ -18,23 +19,13 @@
 #elif Waveshare_Relay_6CH
 
 #define RGB_LED_PIN GPIO_NUM_38
-#define GPIO_PIN_Buzzer GPIO_NUM_21 // Buzzer Control GPIO
+#define GPIO_PIN_Buzzer GPIO_NUM_21   // Buzzer Control GPIO
 #define FACTORY_RESET_PIN GPIO_NUM_12 // Clear NVRAM
-#define PWM_Channel 1 // PWM Channel
-#define Frequency 1000 // PWM frequencyconst
+#define PWM_Channel 1                 // PWM Channel
+#define Frequency 1000                // PWM frequencyconst
 #define Resolution 8
 #define Dutyfactor 200
 
-void inline RGB_Light(uint8_t red_val, uint8_t green_val, uint8_t blue_val) {
-   neopixelWrite(RGB_LED_PIN, green_val, red_val, blue_val); // RGB color adjustment
-}
-
-void inline Buzzer_PWM(uint16_t Time) // ledChannel：PWM Channe    dutyfactor:dutyfactor
-{
-   ledcWrite(PWM_Channel, Dutyfactor);
-   delay(Time);
-   ledcWrite(PWM_Channel, 0);
-}
 
 #define SensorPin GPIO_NUM_3
 
@@ -59,22 +50,6 @@ void inline Buzzer_PWM(uint16_t Time) // ledChannel：PWM Channe    dutyfactor:d
 #define RELAY_5 GPIO_NUM_45
 #define RELAY_6 GPIO_NUM_46
 
-
-void inline GPIO_Init() {
-   pinMode(RELAY_1, OUTPUT);
-   pinMode(RELAY_2, OUTPUT);
-   pinMode(RELAY_3, OUTPUT);
-   pinMode(RELAY_4, OUTPUT);
-   pinMode(RELAY_5, OUTPUT);
-   pinMode(RELAY_6, OUTPUT);
-   pinMode(RGB_LED_PIN, OUTPUT);     // Initialize the control GPIO of RGB
-   pinMode(GPIO_PIN_Buzzer, OUTPUT); // Initialize the control GPIO of Buzzer
-
-   ledcSetup(PWM_Channel, Frequency, Resolution); // Set PWM channel
-   ledcAttachPin(GPIO_PIN_Buzzer, PWM_Channel);   // Connect the channel to the corresponding pin
-
-}
-
 #elif Lilygo_Relay_4CH
 
 #define WIFI_STATUS_PIN GPIO_NUM_25  // LED Pin on the ESP32 Lilygo T-Relay board
@@ -88,15 +63,6 @@ void inline GPIO_Init() {
 #define RELAY_3 GPIO_NUM_18
 #define RELAY_4 GPIO_NUM_5
 
-void inline GPIO_Init() {
-   pinMode(RELAY_1, OUTPUT);
-   pinMode(RELAY_2, OUTPUT);
-   pinMode(RELAY_3, OUTPUT);
-   pinMode(RELAY_4, OUTPUT);
-   pinMode(FACTORY_RESET_PIN, INPUT_PULLUP);
-   pinMode(WIFI_STATUS_PIN, OUTPUT);
-}
-
 // I2C
 #define I2C_SDA GPIO_NUM_15
 #define I2C_SCL GPIO_NUM_14
@@ -109,8 +75,7 @@ void inline GPIO_Init() {
 
 #elif Lilygo_Relay_6CH
 
-#define WIFI_STATUS_PIN GPIO_NUM_25  // LED Pin on the ESP32 Lilygo T-Relay board
-#define FACTORY_RESET_PIN GPIO_NUM_4 // Clear NVRAM
+#define FACTORY_RESET_PIN GPIO_NUM_2 // Clear NVRAM
 #define NUM_RELAYS 6
 
 // HT74HC595
@@ -122,9 +87,6 @@ void inline GPIO_Init() {
 #define RTC_IRQ GPIO_NUM_18
 
 #define SensorPin A0
-
-void inline GPIO_Init() {}
-
 // I2C
 #define I2C_SDA GPIO_NUM_16
 #define I2C_SCL GPIO_NUM_17

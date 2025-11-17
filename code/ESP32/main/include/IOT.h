@@ -52,7 +52,6 @@ class IOT : public IOTServiceInterface {
    AsyncWebServer *_pwebServer;
    NetworkState _networkState = Boot;
    NetworkSelection _NetworkSelection = NotConnected;
-   bool _blinkStateOn = false;
    String _AP_SSID = TAG;
    String _AP_Password = DEFAULT_AP_PASSWORD;
    bool _AP_Connected = false;
@@ -122,7 +121,7 @@ class IOT : public IOTServiceInterface {
 
    IOTCallbackInterface *_iotCB;
    u_int _uniqueId = 0; // unique id from mac address NIC segment
-   unsigned long _lastBlinkTime = 0;
+
    unsigned long _lastBootTimeStamp = millis();
    unsigned long _waitInAPTimeStamp = millis();
    unsigned long _NetworkConnectionStart = 0;
