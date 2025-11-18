@@ -50,7 +50,8 @@
 #define RELAY_5 GPIO_NUM_45
 #define RELAY_6 GPIO_NUM_46
 
-#elif Lilygo_Relay_4CH
+#endif
+#ifdef Lilygo_Relay_4CH
 
 #define WIFI_STATUS_PIN GPIO_NUM_25  // LED Pin on the ESP32 Lilygo T-Relay board
 #define FACTORY_RESET_PIN GPIO_NUM_4 // Clear NVRAM
@@ -73,7 +74,8 @@
 #define SCREEN_HEIGHT 64    // OLED display height, in pixels
 #define OLED_RESET -1       // Reset pin # (or -1 if sharing Arduino reset pin)
 
-#elif Lilygo_Relay_6CH
+#endif
+#ifdef Lilygo_Relay_6CH
 
 #define FACTORY_RESET_PIN GPIO_NUM_2 // Clear NVRAM
 #define NUM_RELAYS 6
@@ -97,7 +99,8 @@
 #define SCREEN_HEIGHT 64    // OLED display height, in pixels
 #define OLED_RESET -1       // Reset pin # (or -1 if sharing Arduino reset pin)
 
-#elif ESP32_X4_Relay_board // old blue board
+#endif
+#ifdef ESP32_X4_Relay_board // old blue board
 
 #define SensorPin A0
 #define SDA_PIN GPIO_NUM_21 // OLED Display SDA and SLC pins
