@@ -111,6 +111,7 @@ const char network_config[] PROGMEM = R"rawliteral(
   <div class="form-grid">
     <label for="networkSelector">Network Mode</label>
     <select id="networkSelector" name="networkSelector" onchange="showFields()">
+      <option value="APMode" {APMode}>AP Mode</option>
       <option value="wifi" {WIFI}>WiFi</option>
       <option value="ethernet" {ETH}>Ethernet</option>
       <option value="modem" {4G}>4G Modem</option>

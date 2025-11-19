@@ -58,8 +58,7 @@ void IOT::Init(IOTCallbackInterface *iotCB, AsyncWebServer *pwebServer) {
       EEPROM.write(0, 0);
       EEPROM.commit();
       saveSettings();
-   }
-      else {
+   } else {
       loadSettings();
    }
 #else // no facroty reset!
@@ -78,7 +77,7 @@ void IOT::Init(IOTCallbackInterface *iotCB, AsyncWebServer *pwebServer) {
       Serial2.begin(_modbusBaudRate, conf, RS485_RXD, RS485_TXD);
       while (!Serial2) {
       }
-   } 
+   }
 #endif
 #ifdef HasMQTT
    mqttReconnectTimer = xTimerCreate("mqttTimer", pdMS_TO_TICKS(8000), pdFALSE, this, mqttReconnectTimerCF);
@@ -140,24 +139,31 @@ void IOT::Init(IOTCallbackInterface *iotCB, AsyncWebServer *pwebServer) {
    _pwebServer->onNotFound([this](AsyncWebServerRequest *request) { RedirectToHome(request); });
    basicAuth.setUsername("admin");
    basicAuth.setPassword(_AP_Password.c_str());
-   basicAuth.setAuthFailureMessage("Authentication failed");
-   basicAuth.setAuthType(AsyncAuthType::AUTH_BASIC);
+   basicAuth.setAuthFailureMessage("Authentication failed!");
+   basicAuth.setAuthType(_NetworkSelection == APMode ? AsyncAuthType::AUTH_NONE : AsyncAuthType::AUTH_BASIC); // skip credentials in APMode
+   basicAuth.setRealm("ESP Settings");
    basicAuth.generateHash();
    _pwebServer
        ->on("/settings", HTTP_GET,
             [this](AsyncWebServerRequest *request) {
+               logd("on /settings");
                String fields = network_config;
                fields.replace("{n}", _AP_SSID);
                fields.replace("{v}", APP_VERSION);
                fields.replace("{AP_SSID}", _AP_SSID);
                fields.replace("{AP_Pw}", _AP_Password);
+               fields.replace("{APMode}", _NetworkSelection == APMode ? "selected" : "");
                fields.replace("{WIFI}", _NetworkSelection == WiFiMode ? "selected" : "");
 #ifdef HasEthernet
                fields.replace("{ETH}", _NetworkSelection == EthernetMode ? "selected" : "");
 #else
-			fields.replace("{ETH}", "class='hidden'");
+   fields.replace("{ETH}", "class='hidden'");
 #endif
+#ifdef HasLTE
                fields.replace("{4G}", _NetworkSelection == ModemMode ? "selected" : "");
+#else
+   fields.replace("{4G}", "class='hidden'");
+#endif
                fields.replace("{SSID}", _SSID);
                fields.replace("{WiFi_Pw}", _WiFi_Password);
                fields.replace("{dhcpChecked}", _useDHCP ? "checked" : "unchecked");
@@ -218,8 +224,8 @@ void IOT::Init(IOTCallbackInterface *iotCB, AsyncWebServer *pwebServer) {
                page += apply_button;
 #ifdef HasOTA
                page += config_links;
-#else 
-			page += config_links_no_ota;
+#else
+   page += config_links_no_ota;
 #endif
                request->send(200, "text/html", page);
             })
@@ -242,7 +248,7 @@ void IOT::Init(IOTCallbackInterface *iotCB, AsyncWebServer *pwebServer) {
       }
       if (request->hasParam("networkSelector", true)) {
          String sel = request->getParam("networkSelector", true)->value();
-         _NetworkSelection = sel == "wifi" ? WiFiMode : sel == "ethernet" ? EthernetMode : ModemMode;
+         _NetworkSelection = sel == "APMode" ? APMode : sel == "wifi" ? WiFiMode : sel == "ethernet" ? EthernetMode : ModemMode;
       }
       if (request->hasParam("WiFi_Pw", true)) {
          _WiFi_Password = request->getParam("WiFi_Pw", true)->value().c_str();
@@ -501,17 +507,19 @@ void IOT::Run() {
    {
       setState(ApState); // switch to AP mode for AP_TIMEOUT
    } else if (_networkState == ApState) {
-      if (_AP_Connected == false) // if AP client is connected, stay in AP mode
-      {
-         if ((now - _waitInAPTimeStamp) > AP_TIMEOUT) // switch to selected network after waiting in APMode for AP_TIMEOUT duration
+      if (_NetworkSelection != APMode) { // don't try to connect if in APMode
+         if (_AP_Connected == false)     // if AP client is connected, stay in AP mode
          {
-            if (_SSID.length() > 0) // is it setup yet?
+            if ((now - _waitInAPTimeStamp) > AP_TIMEOUT) // switch to selected network after waiting in APMode for AP_TIMEOUT duration
             {
-               logd("Connecting to network: %d", _NetworkSelection);
-               setState(Connecting);
+               if (_SSID.length() > 0) // is it setup yet?
+               {
+                  logd("Connecting to network: %d", _NetworkSelection);
+                  setState(Connecting);
+               }
+            } else {
+               UpdateOledDisplay(); // update countdown
             }
-         } else {
-            UpdateOledDisplay(); // update countdown
          }
       }
       _dnsServer.processNextRequest();
@@ -552,7 +560,10 @@ void IOT::UpdateOledDisplay() {
    oled_display.setCursor(0, 30);
 
    if (_networkState == OnLine) {
-      oled_display.println(_NetworkSelection == WiFiMode ? "WiFi: " : "LTE: ");
+      oled_display.println(_NetworkSelection == APMode         ? "AP Mode"
+                           : _NetworkSelection == WiFiMode     ? "WiFi: "
+                           : _NetworkSelection == EthernetMode ? "Ethernet"
+                                                               : "LTE: ");
       oled_display.setTextSize(1);
       oled_display.println(_Current_IP);
    } else if (_networkState == Connecting) {
@@ -768,8 +779,7 @@ esp_err_t IOT::ConnectEthernet() {
    if ((ret = esp_efuse_mac_get_default(base_mac_addr)) == ESP_OK) {
       uint8_t local_mac_1[6];
       esp_derive_local_mac(local_mac_1, base_mac_addr);
-      logi("ETH MAC: %02X:%02X:%02X:%02X:%02X:%02X", local_mac_1[0], local_mac_1[1], local_mac_1[2], local_mac_1[3], local_mac_1[4],
-           local_mac_1[5]);
+      logi("ETH MAC: %02X:%02X:%02X:%02X:%02X:%02X", local_mac_1[0], local_mac_1[1], local_mac_1[2], local_mac_1[3], local_mac_1[4], local_mac_1[5]);
       eth_mac_config_t mac_config = ETH_MAC_DEFAULT_CONFIG(); // Init common MAC and PHY configs to default
       eth_phy_config_t phy_config = ETH_PHY_DEFAULT_CONFIG();
       phy_config.phy_addr = 1;
