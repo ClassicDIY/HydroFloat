@@ -9,10 +9,18 @@
 #include "AnalogSensor.h"
 
 namespace CLASSICDIY {
+
+struct Thresholds {
+   uint16_t threshold;
+   String label;
+   bool active;
+};
+
 class Tank : public Device, public IOTCallbackInterface {
  public:
    Tank() {};
-   void setup();
+
+   void Setup();
    void Process();
 #ifdef HasMQTT
    void onMqttConnect();
@@ -23,16 +31,13 @@ class Tank : public Device, public IOTCallbackInterface {
    void onLoadSetting(JsonDocument &doc);
    void addApplicationConfigs(String &page);
    void onSubmitForm(AsyncWebServerRequest *request);
-   uint16_t stopLevel = stopLevel_default;
-   uint16_t startLeadLevel = startLeadLevel_default;
-   uint16_t startLagLevel = startLagLevel_default;
-   uint16_t overflowLevel = overflowLevel_default;
 
  protected:
 #ifdef HasMQTT
    boolean PublishDiscoverySub(IOTypes type, const char *entityName, const char *unit_of_meas = nullptr, const char *icon = nullptr);
 #endif
  private:
+   std::vector<Thresholds> _relayThresholds;
    AnalogSensor _Sensor = AnalogSensor(SensorPin);
    boolean _discoveryPublished = false;
    String _lastMessagePublished;

@@ -9,12 +9,4 @@ enum IOTypes { DigitalInputs, AnalogInputs, DigitalOutputs, AnalogOutputs };
 
 enum ModbusMode { TCP, RTU };
 
-typedef enum {
-   off,
-   stop,
-   slead,
-   slag,
-   overflow
-
-} relayStatus;
 } // namespace CLASSICDIY

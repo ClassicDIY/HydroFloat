@@ -38,10 +38,5 @@
 #define DISCRETE_BASE_ADDRESS 3000
 #define HOLDING_REGISTER_BASE_ADDRESS 4000
 
-#define stopLevel_default 20
-#define startLeadLevel_default 40
-#define startLagLevel_default 60
-#define overflowLevel_default 80
-
 #define SensorVoltageMin 540 // Mininum output voltage from Sensor in mV (135 * .004 = 540)
 #define SensorVoltageMax 2700 // Maximum output voltage from Sensor in mV (135 * .02 = 2700).

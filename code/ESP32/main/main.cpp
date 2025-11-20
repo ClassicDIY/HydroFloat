@@ -29,7 +29,7 @@ void setup() {
    logd("------------ESP32 specifications ---------------");
    esp_task_wdt_init(60, true); // 60-second timeout, panic on timeout
    esp_task_wdt_add(NULL);
-   _tank->setup();
+   _tank->Setup();
    logd("Setup Done");
 }
 

@@ -16,7 +16,7 @@ namespace CLASSICDIY
     class Oled
     {
     public:
-        void update(uint16_t level, relayStatus status);
+        void update(uint16_t level, const char* state);
 
     private:
         uint8_t xOffset(uint8_t textSize, uint8_t numberOfCharaters);

@@ -140,7 +140,7 @@ void IOT::Init(IOTCallbackInterface *iotCB, AsyncWebServer *pwebServer) {
    basicAuth.setUsername("admin");
    basicAuth.setPassword(_AP_Password.c_str());
    basicAuth.setAuthFailureMessage("Authentication failed!");
-   basicAuth.setAuthType(_NetworkSelection == APMode ? AsyncAuthType::AUTH_NONE : AsyncAuthType::AUTH_BASIC); // skip credentials in APMode
+   basicAuth.setAuthType(_NetworkSelection <= APMode ? AsyncAuthType::AUTH_NONE : AsyncAuthType::AUTH_BASIC); // skip credentials in APMode
    basicAuth.setRealm("ESP Settings");
    basicAuth.generateHash();
    _pwebServer
@@ -162,7 +162,7 @@ void IOT::Init(IOTCallbackInterface *iotCB, AsyncWebServer *pwebServer) {
 #ifdef HasLTE
                fields.replace("{4G}", _NetworkSelection == ModemMode ? "selected" : "");
 #else
-   fields.replace("{4G}", "class='hidden'");
+               fields.replace("{4G}", "class='hidden'");
 #endif
                fields.replace("{SSID}", _SSID);
                fields.replace("{WiFi_Pw}", _WiFi_Password);

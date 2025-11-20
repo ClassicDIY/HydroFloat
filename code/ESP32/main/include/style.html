@@ -46,7 +46,16 @@ const char style[] PROGMEM = R"rawliteral(
             display: flex;
             flex-direction: column;
             height: 100%; 
-			width:300px;
+			width:600px;
+        }
+        .boxes-container {
+            margin-bottom: 10px;
+            margin-top: 10px;
+            display: flex;
+            flex-direction: column;
+            height: 100%; 
+			width:100%;
+            line-height:2.4rem;
         }
         .fs {
             display: inline-block;
@@ -56,14 +65,14 @@ const char style[] PROGMEM = R"rawliteral(
             color: #000080;
         }
         .box {
-            width: 120px;
-            height: 25px;
             margin: 5px;
 			background-color:grey;
+            color:white;
 			display: inline-flex; /* Changed to inline-flex to allow the use of Flexbox */
 			align-items: center;  /* Vertically center the content */
 			justify-content: center; /* Horizontally center the content */
 			border: 1px solid #000; /* Added a border for better visibility */
+            font-size:1.5rem;
         }
         .modbus-bridge-row {
             display: grid;
@@ -124,6 +133,8 @@ const char style[] PROGMEM = R"rawliteral(
         .link-row a {
           text-decoration: none;
           font-weight: bold;
+          line-height:2.4rem;
+          font-size:1.2rem;
           color: #0055aa;
         }
         .link-row a:hover {

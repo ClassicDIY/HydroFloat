@@ -14,7 +14,7 @@ static AsyncWebServer _asyncServer(ASYNC_WEBSERVER_PORT);
 static AsyncWebSocket _webSocket("/ws_home");
 IOT _iot = IOT();
 
-void Tank::setup() {
+void Tank::Setup() {
    Init();
    _iot.Init(this, &_asyncServer);
    _asyncServer.addHandler(&_webSocket).addMiddleware([this](AsyncWebServerRequest *request, ArMiddlewareNext next) {
@@ -50,45 +50,73 @@ void Tank::setup() {
          // 	logd("ws pong");
       }
    });
-
 }
 
 void Tank::onSaveSetting(JsonDocument &doc) {
-   doc["of"] = overflowLevel;
-   doc["slag"] = startLagLevel;
-   doc["slead"] = startLeadLevel;
-   doc["stop"] = stopLevel;
+   if (_relayThresholds.size() == 0) {
+      logd("set default threshhold labels");
+#define DEFAULT_LABELS 4
+      String defaultLabels[DEFAULT_LABELS] = {"Run", "Start lead", "Start lag", "Overflow"};
+      int inc = 100 / (NumberOfRelays() + 1);
+      int threshold = inc;
+      for (int i = 0; i < NumberOfRelays(); i++) {
+         Thresholds newRule;
+         newRule.threshold = threshold;
+         if (i < DEFAULT_LABELS) {
+            newRule.label = defaultLabels[i]; // set default label
+         }
+         newRule.active = i < DEFAULT_LABELS;
+         _relayThresholds.push_back(newRule);
+         threshold += inc;
+      }
+   }
+   JsonArray rth = doc["relayThresholds"].to<JsonArray>();
+   for (const auto &rule : _relayThresholds) {
+      JsonObject obj = rth.add<JsonObject>();
+      obj["threshold"] = rule.threshold;
+      obj["label"] = rule.label;
+      obj["active"] = rule.active;
+   }
 }
 
 void Tank::onLoadSetting(JsonDocument &doc) {
-   overflowLevel = doc["of"].isNull() ? overflowLevel_default : doc["of"];
-   startLagLevel = doc["slag"].isNull() ? startLagLevel_default : doc["slag"];
-   startLeadLevel = doc["slead"].isNull() ? startLeadLevel_default : doc["slead"];
-   stopLevel = doc["stop"].isNull() ? stopLevel_default : doc["stop"];
+   JsonArray rth = doc["relayThresholds"].as<JsonArray>();
+   for (JsonObject obj : rth) {
+      Thresholds rule;
+      rule.threshold = obj["threshold"];
+      rule.label = obj["label"].as<String>();
+      rule.active = obj["active"];
+      _relayThresholds.push_back(rule);
+   }
 }
 
 void Tank::addApplicationConfigs(String &page) {
-   String appFields = app_config_fields;
-   appFields.replace("{of}", String(overflowLevel));
-   appFields.replace("{slag}", String(startLagLevel));
-   appFields.replace("{slead}", String(startLeadLevel));
-   appFields.replace("{stop}", String(stopLevel));
-   page += appFields;
+   String appFieldSet = app_config_fields;
+   String appFields;
+
+   int i = 0;
+   for (auto &rule : _relayThresholds) {
+      String appField = app_config_field;
+      std::stringstream ss;
+      ss << "relay" << i++ + 1;
+      appField.replace("{acf_id}", ss.str().c_str());
+      appField.replace("{acf_label}", rule.label.c_str());
+      appField.replace("{acf_value}", String(rule.threshold).c_str());
+      appFields += appField;
+   }
+   appFieldSet.replace("{acf}", appFields.c_str());
+   page += appFieldSet;
 }
 
 void Tank::onSubmitForm(AsyncWebServerRequest *request) {
-   if (request->hasParam("overflow", true)) {
-      overflowLevel = request->getParam("overflow", true)->value().toInt();
+   int i = 0;
+   for (auto &rule : _relayThresholds) {
+      std::stringstream ss;
+      ss << "relay" << i++ + 1;
+      if (request->hasParam(ss.str().c_str(), true)) {
+         rule.threshold = request->getParam(ss.str().c_str(), true)->value().toInt();
+      }
    }
-   if (request->hasParam("slag", true)) {
-      startLagLevel = request->getParam("slag", true)->value().toInt();
-   }
-   if (request->hasParam("slead", true)) {
-      startLeadLevel = request->getParam("slead", true)->value().toInt();
-   }
-   if (request->hasParam("stop", true)) {
-      stopLevel = request->getParam("stop", true)->value().toInt();
-   };
 }
 
 void Tank::Process() {
@@ -103,28 +131,20 @@ void Tank::Process() {
       waterLevel = waterLevel <= 1.0 ? 0 : waterLevel;
       _lastWaterLevel = waterLevel;
       doc["level"] = waterLevel;
-      boolean s1 = waterLevel > stopLevel;
-      boolean s2 = waterLevel > startLeadLevel;
-      boolean s3 = waterLevel > startLagLevel;
-      boolean s4 = waterLevel > overflowLevel;
-      boolean s5 = false; // ToDo
-      boolean s6 = false;
-      SetRelay(0, s1 ? HIGH : LOW);
-      SetRelay(1, s2 ? HIGH : LOW);
-      SetRelay(2, s3 ? HIGH : LOW);
-      SetRelay(3, s4 ? HIGH : LOW);
-      SetRelay(4, s5 ? HIGH : LOW);
-      SetRelay(5, s6 ? HIGH : LOW);
-
-      doc["relay1"] = s1 ? "on" : "off";
-      doc["relay2"] = s2 ? "on" : "off";
-      doc["relay3"] = s3 ? "on" : "off";
-      doc["relay4"] = s4 ? "on" : "off";
-      doc["relay5"] = s5 ? "on" : "off";
-      doc["relay6"] = s6 ? "on" : "off";
-
+      String state = "Stop";
+      int i = 0;
+      for (auto &rule : _relayThresholds) {
+         SetRelay(i, waterLevel > rule.threshold ? HIGH : LOW);
+         std::stringstream ss;
+         ss << "relay" << i++ + 1;
+         doc[ss.str()] = waterLevel > rule.threshold ? "on" : "off";
+         if (waterLevel > rule.threshold) {
+            state = rule.label;
+            logd("waterlevel: %f level: %d Label %s", waterLevel, rule.threshold, rule.label.c_str());
+         }
+      }
 #ifdef Has_OLED_Display
-      _oled.update(waterLevel, s4 ? overflow : s3 ? slag : s2 ? slead : s1 ? stop : off);
+      _oled.update(waterLevel, state.c_str());
 #endif
       serializeJson(doc, s);
       _webSocket.textAll(s);
