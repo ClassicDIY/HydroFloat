@@ -33,10 +33,10 @@
 #define MODBUS_RTU_TIMEOUT 2000
 #define MODBUS_RTU_REQUEST_QUEUE_SIZE 64
 
-#define INPUT_REGISTER_BASE_ADDRESS 1000
-#define COIL_BASE_ADDRESS 2000
-#define DISCRETE_BASE_ADDRESS 3000
-#define HOLDING_REGISTER_BASE_ADDRESS 4000
+#define INPUT_REGISTER_BASE_ADDRESS 0
+#define COIL_BASE_ADDRESS 0
+#define DISCRETE_BASE_ADDRESS 0
+#define HOLDING_REGISTER_BASE_ADDRESS 0
 
 #define SensorVoltageMin 540 // Mininum output voltage from Sensor in mV (135 * .004 = 540)
 #define SensorVoltageMax 2700 // Maximum output voltage from Sensor in mV (135 * .02 = 2700).

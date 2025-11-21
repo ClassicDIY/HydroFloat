@@ -212,6 +212,11 @@ void IOT::Init(IOTCallbackInterface *iotCB, AsyncWebServer *pwebServer) {
                modbus.replace("{RTU_CLIENT_Parity_Odd}", _modbusClientParity == UART_PARITY_ODD ? "selected" : "");
                modbus.replace("{RTU_CLIENT_1Stop}", _modbusClientStopBits == UART_STOP_BITS_1 ? "selected" : "");
                modbus.replace("{RTU_CLIENT_2Stop}", _modbusClientStopBits == UART_STOP_BITS_2 ? "selected" : "");
+               // hide unused modbus functions
+               modbus.replace("{inputRegDivClass}", InputRegistersDiv);
+               modbus.replace("{coilDivClass}", CoilsDiv);
+               modbus.replace("{discreteDivClass}", DiscretesDiv);
+               modbus.replace("{holdingRegDivClass}", HoldingRegistersDiv);
                fields += modbus;
 #endif
                String page = network_config_top;

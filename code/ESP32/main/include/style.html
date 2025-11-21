@@ -62,12 +62,22 @@ const char style[] PROGMEM = R"rawliteral(
             border-radius:0.3rem;
             margin: 0px;
             width:95%; 
-            color: #000080;
+            color: #080852ff;
         }
         .box {
             margin: 5px;
 			background-color:grey;
             color:white;
+			display: inline-flex; /* Changed to inline-flex to allow the use of Flexbox */
+			align-items: center;  /* Vertically center the content */
+			justify-content: center; /* Horizontally center the content */
+			border: 1px solid #000; /* Added a border for better visibility */
+            font-size:1.5rem;
+        }
+        .state_box {
+            margin: 5px;
+			background-color:white;
+            color: #170336ff;
 			display: inline-flex; /* Changed to inline-flex to allow the use of Flexbox */
 			align-items: center;  /* Vertically center the content */
 			justify-content: center; /* Horizontally center the content */

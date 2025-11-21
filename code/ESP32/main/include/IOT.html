@@ -51,16 +51,6 @@ const char network_config_top[] PROGMEM = R"rawliteral(
             const fieldset = document.getElementById("modbus");
             fieldset.disabled = !checkbox.checked;
         }
-        function showFields() {
-            // Hide all fields
-            document.querySelectorAll('#networkSelector-container > div').forEach(div => div.classList.add('hidden'));
-
-            // Get selected value
-            var selectedValue = document.getElementById('networkSelector').value;
-            if (selectedValue) {
-                document.getElementById(selectedValue + '-fields').classList.remove('hidden');
-            }
-        }
         function showMBFields() {
             document.querySelectorAll('#modbusSelector-container > div').forEach(div => div.classList.add('hidden'));
             var selectedValue = document.getElementById('modbusModeSelector').value;
@@ -68,12 +58,50 @@ const char network_config_top[] PROGMEM = R"rawliteral(
                 document.getElementById(selectedValue + '-fields').classList.remove('hidden');
             }
         }
+        function showFields() {
+            // Hide all fields
+            document.querySelectorAll('#networkSelector-container > div').forEach(div => div.classList.add('hidden'));
+            // Get selected value
+            var selectedValue = document.getElementById('networkSelector').value.trim();
+            if (selectedValue === "apmode") {
+              var modbusEl = document.getElementById('modbus');
+              if (modbusEl) {
+                modbusEl.classList.add('hidden');
+              }
+              var mqttEl = document.getElementById('mqtt');
+              if (mqttEl) {
+                mqttEl.classList.add('hidden');
+              }
+            }
+            else {
+                console.log("Selected:", selectedValue);
+                document.getElementById(selectedValue + '-fields').classList.remove('hidden');
+                var mqttEl = document.getElementById('mqtt');
+                if (mqttEl) {
+                  mqttEl.classList.remove('hidden');
+                }
+                var modbusEl = document.getElementById('modbus');
+                if (modbusEl) {
+                  modbusEl.classList.remove('hidden');
+                }
+                showMBFields();
+            }
+        }
+
         window.onload = function() {
 		      showFields();
-          showMBFields();
-          mqttFieldset(document.getElementById("mqttCheckbox"));
-          modbusFieldset(document.getElementById("modbusCheckbox"));
-          dhcpCheck(document.getElementById("dhcpCheckbox"));
+          var mqttEl = document.getElementById('mqttCheckbox');
+          if (mqttEl) {
+            mqttFieldset(mqttEl);
+          }
+          var modbusEl = document.getElementById('modbusCheckbox');
+          if (modbusEl) {
+            modbusFieldset(modbusEl);
+          }
+          var dhcpEl = document.getElementById('dhcpCheckbox');
+          if (dhcpEl) {
+            dhcpCheck(dhcpEl);
+          }
 		    }
         function validateInputs() {
             {validateInputs}
@@ -111,7 +139,7 @@ const char network_config[] PROGMEM = R"rawliteral(
   <div class="form-grid">
     <label for="networkSelector">Network Mode</label>
     <select id="networkSelector" name="networkSelector" onchange="showFields()">
-      <option value="APMode" {APMode}>AP Mode</option>
+      <option value="apmode" {apmode}>AP Mode</option>
       <option value="wifi" {WIFI}>WiFi</option>
       <option value="ethernet" {ETH}>Ethernet</option>
       <option value="modem" {4G}>4G Modem</option>
@@ -245,11 +273,19 @@ const char config_modbus[] PROGMEM = R"rawliteral(
       </div>
     </div>
     <div class="form-grid"><label for="modbusID">Modbus ID</label><input type="number" id="modbusID" name="modbusID" value="{modbusID}" step="1"></div>
-    <div class="form-grid"><label for="inputRegBase">Input Register Address</label><input type="number" id="inputRegBase" name="inputRegBase" value="{inputRegBase}" step="1" min="0" max="65531"></div>
-    <div class="form-grid"><label for="coilBase">Coil Address</label><input type="number" id="coilBase" name="coilBase" value="{coilBase}" step="1" min="0" max="65529"></div>
-    <div class="form-grid"><label for="discreteBase">Discrete Address</label><input type="number" id="discreteBase" name="discreteBase" value="{discreteBase}" step="1" min="0" max="65531"></div>
-    <div class="form-grid"><label for="holdingRegBase">Holding Register Address</label><input type="number" id="holdingRegBase" name="holdingRegBase" value="{holdingRegBase}" step="1" min="0" max="65531"></div>
-  </fieldset>
+    <div {inputRegDivClass}>
+      <div class="form-grid"><label for="inputRegBase">Input Register Address</label><input type="number" id="inputRegBase" name="inputRegBase" value="{inputRegBase}" step="1" min="0" max="65531"></div>
+    </div>
+    <div {coilDivClass}>
+      <div class="form-grid"><label for="coilBase">Coil Address</label><input type="number" id="coilBase" name="coilBase" value="{coilBase}" step="1" min="0" max="65529"></div>
+    </div>
+    <div {discreteDivClass}>
+        <div class="form-grid"><label for="discreteBase">Discrete Address</label><input type="number" id="discreteBase" name="discreteBase" value="{discreteBase}" step="1" min="0" max="65531"></div>
+    </div>
+    <div {holdingRegDivClass}>
+        <div class="form-grid"><label for="holdingRegBase">Holding Register Address</label><input type="number" id="holdingRegBase" name="holdingRegBase" value="{holdingRegBase}" step="1" min="0" max="65531"></div>
+    </div>
+    </fieldset>
 
 )rawliteral";
 

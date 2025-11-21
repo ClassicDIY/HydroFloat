@@ -31,7 +31,25 @@ void Tank::Setup() {
       String page = home_html;
       page.replace("{style}", style);
       page.replace("{n}", _iot.getThingName().c_str());
-      page.replace("{v}", APP_VERSION);
+      page.replace("{v}", APP_VERSION); 
+      String scripts;
+      String relays;
+      int i = 1;
+      for (auto &rule : _relayThresholds) {
+         String relay = relay_field;
+         std::stringstream relayId;
+         relayId << "relay" << i;
+         std::stringstream relayname;
+         relayname << "Relay " << i++;
+         relay.replace("{RelayId}", relayId.str().c_str());
+         relay.replace("{RelayN}", relayname.str().c_str());
+         relays += relay;
+         String script = relay_script;
+         script.replace("{RelayId}", relayId.str().c_str());
+         scripts += script;
+      }
+      page.replace("{Relays}", relays);
+      page.replace("{relay_script}", scripts);
       request->send(200, "text/html", page);
    });
    _webSocket.onEvent([this](AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len) {
@@ -94,14 +112,18 @@ void Tank::addApplicationConfigs(String &page) {
    String appFieldSet = app_config_fields;
    String appFields;
 
-   int i = 0;
+   int i = 1;
    for (auto &rule : _relayThresholds) {
       String appField = app_config_field;
-      std::stringstream ss;
-      ss << "relay" << i++ + 1;
-      appField.replace("{acf_id}", ss.str().c_str());
-      appField.replace("{acf_label}", rule.label.c_str());
-      appField.replace("{acf_value}", String(rule.threshold).c_str());
+      std::stringstream th;
+      th << "relay_th" << i;
+      appField.replace("{RelayN}", String(i).c_str());
+      appField.replace("{th_id}", th.str().c_str());
+      appField.replace("{th_value}", String(rule.threshold).c_str());
+      std::stringstream st;
+      st << "relay_state" << i++;
+      appField.replace("{state_id}", st.str().c_str());
+      appField.replace("{state_value}", rule.label.c_str());
       appFields += appField;
    }
    appFieldSet.replace("{acf}", appFields.c_str());
@@ -109,12 +131,17 @@ void Tank::addApplicationConfigs(String &page) {
 }
 
 void Tank::onSubmitForm(AsyncWebServerRequest *request) {
-   int i = 0;
+   int i = 1;
    for (auto &rule : _relayThresholds) {
-      std::stringstream ss;
-      ss << "relay" << i++ + 1;
-      if (request->hasParam(ss.str().c_str(), true)) {
-         rule.threshold = request->getParam(ss.str().c_str(), true)->value().toInt();
+      std::stringstream th;
+      th << "relay_th" << i;
+      std::stringstream st;
+      st << "relay_state" << i++;
+      if (request->hasParam(th.str().c_str(), true)) {
+         rule.threshold = request->getParam(th.str().c_str(), true)->value().toInt();
+      }
+      if (request->hasParam(st.str().c_str(), true)) {
+         rule.label = request->getParam(st.str().c_str(), true)->value();
       }
    }
 }
@@ -143,6 +170,7 @@ void Tank::Process() {
             logd("waterlevel: %f level: %d Label %s", waterLevel, rule.threshold, rule.label.c_str());
          }
       }
+      doc["state"] = state.c_str();
 #ifdef Has_OLED_Display
       _oled.update(waterLevel, state.c_str());
 #endif
@@ -157,7 +185,7 @@ void Tank::Process() {
 #endif
       _lastMessagePublished = s;
 
-      logv("Published readings: %s", s.c_str());
+      logd("Published readings: %s", s.c_str());
    }
    return;
 }

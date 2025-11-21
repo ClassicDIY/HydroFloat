@@ -2,6 +2,12 @@
 #include <Arduino.h>
 #include "Log.h"
 
+// Modbus setup
+#define CoilsDiv "class=\"hidden\""
+#define InputRegistersDiv ""
+#define DiscretesDiv ""
+#define HoldingRegistersDiv "class=\"hidden\""
+
 #ifdef ESP_32Dev
 
 #define Relays 2                     // number of relays
