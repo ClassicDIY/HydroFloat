@@ -167,7 +167,7 @@ void Tank::Process() {
          doc[ss.str()] = waterLevel > rule.threshold ? "on" : "off";
          if (waterLevel > rule.threshold) {
             state = rule.label;
-            logd("waterlevel: %f level: %d Label %s", waterLevel, rule.threshold, rule.label.c_str());
+            logv("waterlevel: %f level: %d Label %s", waterLevel, rule.threshold, rule.label.c_str());
          }
       }
       doc["state"] = state.c_str();
