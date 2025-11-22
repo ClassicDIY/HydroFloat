@@ -1,7 +1,8 @@
 {
   "build": {
     "arduino": {
-      "ldscript": "esp32_out.ld"
+      "ldscript": "esp32_out.ld",
+      "partitions": "min_spiffs.csv"
     },
     "core": "esp32",
     "extra_flags": [
@@ -33,8 +34,8 @@
   "name": "LilyGo T-Relay",
   "upload": {
     "flash_size": "4MB",
-    "maximum_ram_size": 327680,
-    "maximum_size": 4194304,
+    "maximum_ram_size": 131072,
+    "maximum_size": 1966080,
     "require_upload_port": true,
     "speed": 460800
   },

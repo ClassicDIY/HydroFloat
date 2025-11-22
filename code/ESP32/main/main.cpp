@@ -9,6 +9,7 @@ Tank *_tank = new Tank();
 
 void setup() {
    // wait for Serial to connect, give up after 5 seconds, USB may not be connected
+   delay(3000);
    unsigned long start = millis();
    Serial.begin(115200);
    while (!Serial) {

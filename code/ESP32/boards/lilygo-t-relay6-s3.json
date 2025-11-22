@@ -39,8 +39,8 @@
   "name": "LilyGo T-Relay-S3",
   "upload": {
     "flash_size": "16MB",
-    "maximum_ram_size": 327680,
-    "maximum_size": 16777216,
+    "maximum_ram_size": 3538944,
+    "maximum_size": 6553600,
     "require_upload_port": true,
     "speed": 460800
   },

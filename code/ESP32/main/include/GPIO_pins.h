@@ -60,7 +60,7 @@
 #ifdef Lilygo_Relay_4CH
 
 #define WIFI_STATUS_PIN GPIO_NUM_25  // LED Pin on the ESP32 Lilygo T-Relay board
-#define FACTORY_RESET_PIN GPIO_NUM_4 // Clear NVRAM
+#define FACTORY_RESET_PIN GPIO_NUM_13 // Clear NVRAM
 
 #define SensorPin A0
 
