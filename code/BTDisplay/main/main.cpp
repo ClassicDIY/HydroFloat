@@ -2,7 +2,6 @@
 #include <Arduino.h>
 #include "Log.h"
 #include "BLEDevice.h"
-#include <Wire.h>
 
 #include <TFT_eSPI.h> // Include the graphics library
 
@@ -42,38 +41,35 @@ const uint8_t notificationOff[] = {0x0, 0x0};
 // When the BLE Server sends a new level reading with the notify property
 static void levelNotifyCallback(BLERemoteCharacteristic *pBLERemoteCharacteristic, uint8_t *pData, size_t length, bool isNotify)
 {
-  // char levelChar[256];
-  // strncpy(levelChar, (char *)pData, length);
-  // levelChar[length] = '\0'; // Ensure null termination
-  // oled_display.setCursor(10, 20);
-  // oled_display.setTextColor(TFT_GREEN, TFT_BLACK);
-  // oled_display.setTextSize(4);
-  // oled_display.print(levelChar);
-  oled_display.clearDisplay();
-   oled_display.setTextSize(STATUS_FONT);
-   oled_display.setTextColor(SSD1306_WHITE);
-   oled_display.setCursor(32, STATUS_Y);
-   String state = pch;
-   while (state.length() < 10) { // pad right to 10 characters to fill the display line
-      state += ' ';
-   }
-   oled_display.setCursor(xOffset(2, state.length()), STATUS_Y); // center it 
-   oled_display.print(state.c_str());
-   char buffer[64];
-   sprintf(buffer, "%d%%", level);
-   oled_display.setCursor(xOffset(5, strlen(buffer)), LEVEL_Y);
-   oled_display.setTextSize(LEVEL_FONT);
-   oled_display.setTextColor(SSD1306_WHITE);
-   oled_display.print(buffer);
-   oled_display.display();
+  logi("levelNotifyCallback!");
+  char blankLine[12];
+  for (int i = 0; i < 12; i++)
+  {
+    blankLine[i] = ' ';
+  }
+  blankLine[11] = '\0';
+  oled_display.print(blankLine);
+  if (length < 16)
+  {
+    char levelChar[16];
+    strncpy(levelChar, (char *)pData, length);
+    levelChar[length] = '\0';
+    logd("levelNotifyCallback: %s", levelChar);
+    oled_display.setCursor(10, 20);
+    oled_display.setTextColor(TFT_GREEN, TFT_BLACK);
+    oled_display.setTextSize(4);
+    oled_display.print(levelChar);
+  }
 }
 
 // When the BLE Server sends a new status reading with the notify property
 static void statusNotifyCallback(BLERemoteCharacteristic *pBLERemoteCharacteristic, uint8_t *pData, size_t length, bool isNotify)
 {
+  
   char statusChar[256];
   strncpy(statusChar, (char *)pData, length);
   statusChar[length] = '\0'; // Ensure null termination
+  logi("statusNotifyCallback: %s", statusChar);
   oled_display.setTextSize(3);
   oled_display.setCursor(10, 80);
   oled_display.setTextColor(TFT_CYAN, TFT_BLACK);
@@ -162,8 +158,8 @@ void setup()
 
   oled_display.init();
   oled_display.setRotation(1);
-  oled_display.fillScreen(TFT_BLACK);
-  oled_display.setTextColor(TFT_WHITE, TFT_BLACK);
+  oled_display.fillScreen(TFT_CYAN);
+  oled_display.setTextColor(TFT_YELLOW, TFT_BLACK);
   oled_display.setTextSize(1);
   oled_display.setCursor(10, 10);
 
@@ -184,13 +180,15 @@ void loop()
     {
       logi("We are now connected to the BLE Server.");
       // Activate the Notify property of each Characteristic
-      BLERemoteDescriptor* pDesc = levelCharacteristic->getDescriptor(BLEUUID((uint16_t)0x2902));
-      if (pDesc != nullptr) {
+      BLERemoteDescriptor *pDesc = levelCharacteristic->getDescriptor(BLEUUID((uint16_t)0x2902));
+      if (pDesc != nullptr)
+      {
         logi("set levelCharacteristic.");
         pDesc->writeValue((uint8_t *)notificationOn, 2, true);
       }
-      BLERemoteDescriptor* pDescsts = statusCharacteristic->getDescriptor(BLEUUID((uint16_t)0x2902));
-      if (pDescsts != nullptr) {
+      BLERemoteDescriptor *pDescsts = statusCharacteristic->getDescriptor(BLEUUID((uint16_t)0x2902));
+      if (pDescsts != nullptr)
+      {
         logi("set statusCharacteristic.");
         pDescsts->writeValue((uint8_t *)notificationOn, 2, true);
       }
@@ -212,10 +210,10 @@ void loop()
   delay(1000); // Delay a second between loops.
 }
 
-uint8_t xOffset(uint8_t textSize, uint8_t numberOfCharaters)
-{
-  uint8_t textPixels = textSize * 6;
-  uint8_t rVal = (SCREEN_WIDTH - (numberOfCharaters * textPixels)) / 2;
-  // logd("Offset: %d", rVal);
-  return rVal;
-}
+// uint8_t xOffset(uint8_t textSize, uint8_t numberOfCharaters)
+// {
+//   uint8_t textPixels = textSize * 6;
+//   uint8_t rVal = (SCREEN_WIDTH - (numberOfCharaters * textPixels)) / 2;
+//   // logd("Offset: %d", rVal);
+//   return rVal;
+// }
