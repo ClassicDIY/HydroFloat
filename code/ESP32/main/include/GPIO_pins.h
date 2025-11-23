@@ -8,9 +8,11 @@
 #define DiscretesDiv ""
 #define HoldingRegistersDiv "class=\"hidden\""
 
-#ifdef ESP_32Dev
+#ifdef ESP32_DEV_BOARD
 
-#define Relays 2                     // number of relays
+#define SensorPin GPIO_NUM_3
+
+#define NUM_RELAYS 2                     // number of relays
 #define WIFI_STATUS_PIN GPIO_NUM_2   // LED Pin
 #define FACTORY_RESET_PIN GPIO_NUM_4 // Clear NVRAM
 
@@ -19,8 +21,8 @@
 #define I2C_SCL GPIO_NUM_22
 
 // relay
-#define DO0 GPIO_NUM_36
-#define DO1 GPIO_NUM_39
+#define RELAY_1 GPIO_NUM_36
+#define RELAY_2 GPIO_NUM_39
 
 #elif Waveshare_Relay_6CH
 

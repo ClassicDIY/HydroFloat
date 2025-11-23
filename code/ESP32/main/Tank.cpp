@@ -7,16 +7,23 @@
 #include "Tank.h"
 #include "style.html"
 #include "app.html"
+#include "BLE.h"
 
 namespace CLASSICDIY {
 
 static AsyncWebServer _asyncServer(ASYNC_WEBSERVER_PORT);
 static AsyncWebSocket _webSocket("/ws_home");
 IOT _iot = IOT();
+#ifdef Has_BT
+BLE _ble = BLE();
+#endif
 
 void Tank::Setup() {
    Init();
    _iot.Init(this, &_asyncServer);
+   #ifdef Has_BT
+   _ble.begin();
+   #endif
    _asyncServer.addHandler(&_webSocket).addMiddleware([this](AsyncWebServerRequest *request, ArMiddlewareNext next) {
       // ws.count() is the current count of WS clients: this one is trying to upgrade its HTTP connection
       if (_webSocket.count() > 1) {
@@ -31,7 +38,7 @@ void Tank::Setup() {
       String page = home_html;
       page.replace("{style}", style);
       page.replace("{n}", _iot.getThingName().c_str());
-      page.replace("{v}", APP_VERSION); 
+      page.replace("{v}", APP_VERSION);
       String scripts;
       String relays;
       int i = 1;
@@ -174,12 +181,16 @@ void Tank::Process() {
 #ifdef Has_OLED_Display
       _oled.update(waterLevel, state.c_str());
 #endif
+
       serializeJson(doc, s);
       _webSocket.textAll(s);
       if (_lastMessagePublished == s) // anything changed?
       {
          return;
       }
+#ifdef Has_BT
+      _ble.update(waterLevel, state.c_str());
+#endif
 #ifdef HasMQTT
       _iot.Publish("readings", s.c_str(), false);
 #endif
