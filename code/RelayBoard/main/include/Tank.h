@@ -42,7 +42,7 @@ class Tank : public Device, public IOTCallbackInterface {
    boolean _discoveryPublished = false;
    String _lastMessagePublished;
    float _lastWaterLevel = 0;
-#ifdef Has_OLED_Display
+#ifdef Has_OLED
    Oled _oled = Oled();
 #endif
 };

@@ -1,7 +1,5 @@
+#ifdef Has_OLED
 #include "Oled.h"
-#include <Wire.h>
-#include <Adafruit_GFX.h>
-#include <Adafruit_SSD1306.h>
 #include "Log.h"
 #include "defines.h"
 
@@ -35,3 +33,5 @@ uint8_t Oled::xOffset(uint8_t textSize, uint8_t numberOfCharaters) {
    return rVal;
 }
 } // namespace CLASSICDIY
+
+#endif

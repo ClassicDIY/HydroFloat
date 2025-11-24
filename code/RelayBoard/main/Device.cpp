@@ -5,7 +5,7 @@
 #include "Log.h"
 #include "Device.h"
 
-#ifdef Has_OLED_Display
+#ifdef Has_OLED
 Adafruit_SSD1306 oled_display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 #endif
 
@@ -23,7 +23,7 @@ void Device::Init() {
    digitalWrite(HT74HC595_OUT_EN, LOW);
 
    Wire.begin(I2C_SDA, I2C_SCL);
-#ifdef Has_OLED_Display
+#ifdef Has_OLED
    if (!oled_display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
       loge("SSD1306 allocation failed");
    } else {
@@ -90,7 +90,7 @@ gpio_num_t _relays[NUM_RELAYS] = {RELAY_1, RELAY_2, RELAY_3, RELAY_4};
 
 void Device::Init() {
    Wire.begin(I2C_SDA, I2C_SCL);
-#ifdef Has_OLED_Display
+#ifdef Has_OLED
    if (!oled_display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
       loge("SSD1306 allocation failed");
    } else {
@@ -129,7 +129,7 @@ gpio_num_t _relays[NUM_RELAYS] = {RELAY_1, RELAY_2, RELAY_3, RELAY_4, RELAY_5, R
 
 void Device::Init() {
    Wire.begin(I2C_SDA, I2C_SCL);
-#ifdef Has_OLED_Display
+#ifdef Has_OLED
    if (!oled_display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
       loge("SSD1306 allocation failed");
    } else {

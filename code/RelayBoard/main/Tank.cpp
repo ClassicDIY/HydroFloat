@@ -178,7 +178,7 @@ void Tank::Process() {
          }
       }
       doc["state"] = state.c_str();
-#ifdef Has_OLED_Display
+#ifdef Has_OLED
       _oled.update(waterLevel, state.c_str());
 #endif
 

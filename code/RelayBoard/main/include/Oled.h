@@ -1,8 +1,10 @@
 
 #pragma once
+#ifdef Has_OLED
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+
 #include "Enumerations.h"
 
 namespace CLASSICDIY
@@ -23,3 +25,4 @@ namespace CLASSICDIY
     };
 
 }
+#endif

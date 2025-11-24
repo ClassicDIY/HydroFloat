@@ -1,7 +1,17 @@
 
+/*
+#################################################################################
+###### DON'T FORGET TO UPDATE THE User_Setup_Select.h FILE IN THE LIBRARY  ######
+###### Comment out "#include <User_Setup.h>" line 27                       ######
+###### uncomment "#include <User_Setups/Setup25_TTGO_T_Display.h>" line 58 ######
+#################################################################################
+*/
+
 #include <Arduino.h>
 #include "Log.h"
 #include "BLEDevice.h"
+
+#include <User_Setups/Setup25_TTGO_T_Display.h>
 
 #include <TFT_eSPI.h> // Include the graphics library
 
@@ -35,29 +45,33 @@ static BLERemoteCharacteristic *statusCharacteristic;
 const uint8_t notificationOn[] = {0x1, 0x0};
 const uint8_t notificationOff[] = {0x0, 0x0};
 
-#define SCREEN_WIDTH 128 // OLED display width, in pixels
-#define SCREEN_HEIGHT 64 // OLED display height, in pixels
+#define SCREEN_WIDTH 240  // OLED display width, in pixels
+#define SCREEN_HEIGHT 135 // OLED display height, in pixels
+#define STATUS_TEXT_SIZE 3
+#define LEVEL_TEXT_SIZE 7
+#define STATUS_TEXT_POS 20
+#define LEVEL_TEXT_POS 70
+
+uint8_t xOffset(uint8_t textSize, uint8_t numberOfCharaters)
+{
+  uint8_t textPixels = textSize * 6;
+  uint8_t rVal = (SCREEN_WIDTH - (numberOfCharaters * textPixels)) / 2;
+  // logd("Offset: %d", rVal);
+  return rVal;
+}
 
 // When the BLE Server sends a new level reading with the notify property
 static void levelNotifyCallback(BLERemoteCharacteristic *pBLERemoteCharacteristic, uint8_t *pData, size_t length, bool isNotify)
 {
-  logi("levelNotifyCallback!");
-  char blankLine[12];
-  for (int i = 0; i < 12; i++)
-  {
-    blankLine[i] = ' ';
-  }
-  blankLine[11] = '\0';
-  oled_display.print(blankLine);
   if (length < 16)
   {
     char levelChar[16];
     strncpy(levelChar, (char *)pData, length);
     levelChar[length] = '\0';
-    logd("levelNotifyCallback: %s", levelChar);
-    oled_display.setCursor(10, 20);
-    oled_display.setTextColor(TFT_GREEN, TFT_BLACK);
-    oled_display.setTextSize(4);
+    oled_display.setCursor(xOffset(LEVEL_TEXT_SIZE, length), LEVEL_TEXT_POS);
+    oled_display.setTextColor(TFT_BLUE, TFT_BLACK);
+    oled_display.setTextSize(LEVEL_TEXT_SIZE);
+    oled_display.fillRect(0, STATUS_TEXT_POS, SCREEN_WIDTH, SCREEN_HEIGHT, TFT_BLACK);
     oled_display.print(levelChar);
   }
 }
@@ -65,15 +79,17 @@ static void levelNotifyCallback(BLERemoteCharacteristic *pBLERemoteCharacteristi
 // When the BLE Server sends a new status reading with the notify property
 static void statusNotifyCallback(BLERemoteCharacteristic *pBLERemoteCharacteristic, uint8_t *pData, size_t length, bool isNotify)
 {
-  
-  char statusChar[256];
-  strncpy(statusChar, (char *)pData, length);
-  statusChar[length] = '\0'; // Ensure null termination
-  logi("statusNotifyCallback: %s", statusChar);
-  oled_display.setTextSize(3);
-  oled_display.setCursor(10, 80);
-  oled_display.setTextColor(TFT_CYAN, TFT_BLACK);
-  oled_display.print(statusChar);
+  if (length < 16)
+  {
+    char statusChar[16];
+    strncpy(statusChar, (char *)pData, length);
+    statusChar[length] = '\0'; // Ensure null termination
+    oled_display.setTextSize(STATUS_TEXT_SIZE);
+    oled_display.setCursor(xOffset(STATUS_TEXT_SIZE, length), STATUS_TEXT_POS);
+    oled_display.setTextColor(TFT_GREENYELLOW, TFT_BLACK);
+    oled_display.fillRect(0, 0, SCREEN_WIDTH, LEVEL_TEXT_POS, TFT_BLACK);
+    oled_display.print(statusChar);
+  }
 }
 
 // Connect to the BLE Server that has the name, Service, and Characteristics
@@ -158,10 +174,12 @@ void setup()
 
   oled_display.init();
   oled_display.setRotation(1);
-  oled_display.fillScreen(TFT_CYAN);
+  oled_display.fillScreen(TFT_BLACK);
   oled_display.setTextColor(TFT_YELLOW, TFT_BLACK);
-  oled_display.setTextSize(1);
+  oled_display.setTextSize(4);
   oled_display.setCursor(10, 10);
+
+  oled_display.print("Scanning");
 
   // Init BLE device
   BLEDevice::init("");
@@ -192,6 +210,7 @@ void loop()
         logi("set statusCharacteristic.");
         pDescsts->writeValue((uint8_t *)notificationOn, 2, true);
       }
+      oled_display.fillScreen(TFT_BLACK);
     }
     else
     {
@@ -209,11 +228,3 @@ void loop()
   }
   delay(1000); // Delay a second between loops.
 }
-
-// uint8_t xOffset(uint8_t textSize, uint8_t numberOfCharaters)
-// {
-//   uint8_t textPixels = textSize * 6;
-//   uint8_t rVal = (SCREEN_WIDTH - (numberOfCharaters * textPixels)) / 2;
-//   // logd("Offset: %d", rVal);
-//   return rVal;
-// }
