@@ -63,34 +63,38 @@ const char home_html[] PROGMEM = R"rawliteral(
 	</script>
     </head>
   <body>
-	<h2>{n}</h2>
-	<div style='font-size: .6em;'>Firmware version '{v}'</div>
-	<hr>
-	<div class="container">
-		<div class="home-group">
-			<canvas id="CW_gauge" width="420" height="420"
-					data-type="canv-gauge"
-					data-title="Water Level"
-					data-major-ticks="0 10 20 30 40 50 60 70 80 90 100"
-					data-minor-ticks="5"            
-					data-units="%"
-					data-value-format="2.1"
-					data-max-value="100"
-					data-min-value="0"
-					data-color-plate="#0FF"
-					data-highlights="0 2000 #FFe">
-			</canvas>
-			
-			<div class="state_box" id="RelayState">  </div>
-			<div  id="boxes-container"> 
-				{Relays}
+	<div id="home">
+		<div id="hdr">
+			<h2>{n}</h2>
+			<div style='font-size: .6em;'>Firmware version '{v}'</div>
+			<hr>
+			<div class="container">
+				<div class="home-group">
+					<canvas id="CW_gauge" width="420" height="420"
+							data-type="canv-gauge"
+							data-title="Water Level"
+							data-major-ticks="0 10 20 30 40 50 60 70 80 90 100"
+							data-minor-ticks="5"            
+							data-units="%"
+							data-value-format="2.1"
+							data-max-value="100"
+							data-min-value="0"
+							data-color-plate="#0FF"
+							data-highlights="0 2000 #FFe">
+					</canvas>
+					
+					<div class="state_box" id="RelayState">  </div>
+					<div  id="boxes-container"> 
+						{Relays}
+					</div>
+					<div class="link-row">
+						<p><a href='settings'>Settings</a></p>
+						<p><a href='/log' target='_blank'>Web Log</a></p>
+					
+				</div>
 			</div>
-			<div class="link-row">
-				<p><a href='settings'>Settings</a></p>
-				<p><a href='/log' target='_blank'>Web Log</a></p>
-			
 		</div>
-	</div>
+	</div
   </body>
   </html>
 )rawliteral";

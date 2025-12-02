@@ -2,7 +2,7 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #ifdef HasModbus
-#include <ModbusMessage.h>
+#include <ModbusServerTCPasync.h>
 #endif
 #include "Enumerations.h"
 
@@ -11,12 +11,14 @@ class IOTCallbackInterface {
  public:
    virtual void onNetworkState(NetworkState state) = 0;
    virtual void addApplicationConfigs(String &page);
-   virtual void onSubmitForm(AsyncWebServerRequest *request);
    virtual void onSaveSetting(JsonDocument &doc);
    virtual void onLoadSetting(JsonDocument &doc);
 #ifdef HasMQTT
    virtual void onMqttConnect() = 0;
    virtual void onMqttMessage(char *topic, char *payload) = 0;
+#endif
+#if defined(HasModbus) && defined(HasRS485)
+   virtual bool onModbusMessage(ModbusMessage &msg);
 #endif
 };
 } // namespace CLASSICDIY

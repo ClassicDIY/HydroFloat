@@ -26,11 +26,13 @@ class Tank : public Device, public IOTCallbackInterface {
    void onMqttConnect();
    void onMqttMessage(char *topic, char *payload);
 #endif
+#if defined(HasModbus) && defined(HasRS485)
+   bool onModbusMessage(ModbusMessage &msg);
+#endif
    void onNetworkState(NetworkState state);
    void onSaveSetting(JsonDocument &doc);
    void onLoadSetting(JsonDocument &doc);
    void addApplicationConfigs(String &page);
-   void onSubmitForm(AsyncWebServerRequest *request);
 
  protected:
 #ifdef HasMQTT

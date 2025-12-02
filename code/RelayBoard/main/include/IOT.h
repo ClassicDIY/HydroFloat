@@ -43,8 +43,12 @@ class IOT : public IOTServiceInterface {
 #endif
 
 #ifdef HasModbus
+   boolean ModbusBridgeEnabled();
    void registerMBTCPWorkers(FunctionCode fc, MBSworker worker);
+   Modbus::Error SendToModbusBridgeAsync(ModbusMessage &request);
    uint16_t getMBBaseAddress(IOTypes type);
+#else
+   boolean ModbusBridgeEnabled() { return false; };
 #endif
 
  private:
@@ -52,6 +56,7 @@ class IOT : public IOTServiceInterface {
    AsyncWebServer *_pwebServer;
    NetworkState _networkState = Boot;
    NetworkSelection _NetworkSelection = NotConnected;
+   bool _blinkStateOn = false;
    String _AP_SSID = TAG;
    String _AP_Password = DEFAULT_AP_PASSWORD;
    bool _AP_Connected = false;
@@ -104,6 +109,8 @@ class IOT : public IOTServiceInterface {
    uart_parity_t _modbusParity = UART_PARITY_DISABLE;
    uart_stop_bits_t _modbusStopBits = UART_STOP_BITS_1;
    uint16_t _modbusID = 1;
+
+   bool _useModbusBridge = false;
    unsigned long _modbusClientBaudRate = 9600;
    uart_parity_t _modbusClientParity = UART_PARITY_DISABLE;
    uart_stop_bits_t _modbusClientStopBits = UART_STOP_BITS_1;
@@ -121,16 +128,19 @@ class IOT : public IOTServiceInterface {
 
    IOTCallbackInterface *_iotCB;
    u_int _uniqueId = 0; // unique id from mac address NIC segment
-
+   unsigned long _lastBlinkTime = 0;
    unsigned long _lastBootTimeStamp = millis();
    unsigned long _waitInAPTimeStamp = millis();
    unsigned long _NetworkConnectionStart = 0;
+   unsigned long _GPIO0_PressedCountdown = 0;
    unsigned long _FlasherIPConfigStart = millis();
    void RedirectToHome(AsyncWebServerRequest *request);
    void UpdateOledDisplay();
    void GoOffline();
    void saveSettings();
    void loadSettings();
+   void loadSettingsFromJson(JsonDocument &doc);
+   void saveSettingsToJson(JsonDocument &doc);
    void setState(NetworkState newState);
 #ifdef HasLTE
    void wakeup_modem(void);

@@ -5,8 +5,8 @@
 #include "IOT.h"
 #include "CoilSet.h"
 #include "Tank.h"
-#include "style.html"
-#include "app.html"
+#include "style.htm"
+#include "app.htm"
 #include "BLE.h"
 
 namespace CLASSICDIY {
@@ -21,9 +21,9 @@ BLE _ble = BLE();
 void Tank::Setup() {
    Init();
    _iot.Init(this, &_asyncServer);
-   #ifdef Has_BT
+#ifdef Has_BT
    _ble.begin();
-   #endif
+#endif
    _asyncServer.addHandler(&_webSocket).addMiddleware([this](AsyncWebServerRequest *request, ArMiddlewareNext next) {
       // ws.count() is the current count of WS clients: this one is trying to upgrade its HTTP connection
       if (_webSocket.count() > 1) {
@@ -59,6 +59,13 @@ void Tank::Setup() {
       page.replace("{relay_script}", scripts);
       request->send(200, "text/html", page);
    });
+   _asyncServer.on("/appsettings", HTTP_GET, [this](AsyncWebServerRequest *request) {
+      JsonDocument app;
+      onSaveSetting(app);
+      String s;
+      serializeJson(app, s);
+      request->send(200, "text/html", s);
+   });
    _webSocket.onEvent([this](AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len) {
       (void)len;
       if (type == WS_EVT_CONNECT) {
@@ -70,8 +77,7 @@ void Tank::Setup() {
          // logi("Home Page Disconnected!");
       } else if (type == WS_EVT_ERROR) {
          loge("ws error");
-
-         // } else if (type == WS_EVT_PONG) {
+      } else if (type == WS_EVT_PONG) {
          // 	logd("ws pong");
       }
    });
@@ -116,6 +122,7 @@ void Tank::onLoadSetting(JsonDocument &doc) {
 }
 
 void Tank::addApplicationConfigs(String &page) {
+   
    String appFieldSet = app_config_fields;
    String appFields;
 
@@ -134,23 +141,11 @@ void Tank::addApplicationConfigs(String &page) {
       appFields += appField;
    }
    appFieldSet.replace("{acf}", appFields.c_str());
+   page.replace("{onload}", "");
+   page.replace("{validate}", "");
+   page.replace("{validateInputs}", "");
+   page.replace("{script}", "");
    page += appFieldSet;
-}
-
-void Tank::onSubmitForm(AsyncWebServerRequest *request) {
-   int i = 1;
-   for (auto &rule : _relayThresholds) {
-      std::stringstream th;
-      th << "relay_th" << i;
-      std::stringstream st;
-      st << "relay_state" << i++;
-      if (request->hasParam(th.str().c_str(), true)) {
-         rule.threshold = request->getParam(th.str().c_str(), true)->value().toInt();
-      }
-      if (request->hasParam(st.str().c_str(), true)) {
-         rule.label = request->getParam(st.str().c_str(), true)->value();
-      }
-   }
 }
 
 void Tank::Process() {
@@ -251,6 +246,13 @@ void Tank::onNetworkState(NetworkState state) {
 #endif
    }
 }
+
+#if defined(HasModbus) && defined(HasRS485)
+bool Tank::onModbusMessage(ModbusMessage &msg) {
+   return false;
+   //ToDo
+}
+#endif
 
 #ifdef HasMQTT
 
