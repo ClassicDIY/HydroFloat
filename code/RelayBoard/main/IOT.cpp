@@ -165,7 +165,7 @@ void IOT::Init(IOTCallbackInterface *iotCB, AsyncWebServer *pwebServer) {
    basicAuth.setAuthFailureMessage("Authentication failed!");
    basicAuth.setAuthType(_NetworkSelection <= APMode ? AsyncAuthType::AUTH_NONE : AsyncAuthType::AUTH_BASIC); // skip credentials in APMode
    basicAuth.generateHash();
-   //      // Serve favicon.ico
+   // Serve favicon.ico
    //   server.on("/favicon.ico", HTTP_GET, [](AsyncWebServerRequest *request){
    //     request->send_P(200, "image/x-icon", (const char*)favicon_ico, sizeof(favicon_ico));
    //   });
@@ -182,8 +182,6 @@ void IOT::Init(IOTCallbackInterface *iotCB, AsyncWebServer *pwebServer) {
          // Serve from filesystem
          request->send(LittleFS, "/style.css", "text/css");
       }
-
-      // request->send(200, "text/css", style);
    });
    _pwebServer->on("/script.js", HTTP_GET, [this](AsyncWebServerRequest *request) {
       // logd("script loaded");
@@ -194,10 +192,6 @@ void IOT::Init(IOTCallbackInterface *iotCB, AsyncWebServer *pwebServer) {
             return _iotCB->appTemplateProcessor(var);
          });
       }
-      // request->send(200, "application/javascript", iot_script, [this](const String &var) {
-      //    logd("script template: %s", var.c_str());
-      //    return _iotCB->appTemplateProcessor(var);
-      // });
    });
    // Return the /settings web page
    _pwebServer
@@ -270,6 +264,7 @@ void IOT::Init(IOTCallbackInterface *iotCB, AsyncWebServer *pwebServer) {
              saveSettings();
              RedirectToHome(request);
           }
+          request->send(200, "application/json", "{\"status\":\"ok\"}");
           _bodyBuffer = ""; // clear for next request
        },
        NULL, // file upload handler (not used here)

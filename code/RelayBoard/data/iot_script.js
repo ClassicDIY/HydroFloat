@@ -139,7 +139,10 @@ async function loadSettings() {
         var modbusEl = document.getElementById('modbusCheckbox');
         if (modbusEl) {
             modbusFieldset(modbusEl);
-            modbusBridgeFieldset(document.getElementById("modbusBridgeCheckbox"));
+            var modbusBcb = document.getElementById('modbusBridgeCheckbox');
+            if (modbusBcb) {
+                modbusBridgeFieldset(document.getElementById("modbusBridgeCheckbox"));
+            }
             toggleMDBridgeFieldset();
         }
         var dhcpEl = document.getElementById('useDHCP');

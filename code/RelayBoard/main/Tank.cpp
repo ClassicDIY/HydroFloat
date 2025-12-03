@@ -80,6 +80,7 @@ void Tank::Setup() {
              _relayThresholds.clear();
              onLoadSetting(doc);
           }
+          request->send(200, "application/json", "{\"status\":\"ok\"}");
           _bodyBuffer = ""; // clear for next request
        },
        NULL, // file upload handler (not used here)
