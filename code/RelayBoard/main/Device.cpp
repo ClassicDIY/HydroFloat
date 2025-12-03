@@ -2,6 +2,7 @@
 #include <memory>
 #include "Wire.h"
 #include <ArduinoJson.h>
+#include <LittleFS.h>
 #include "Log.h"
 #include "Device.h"
 
@@ -102,6 +103,9 @@ void Device::Init() {
    }
    pinMode(FACTORY_RESET_PIN, INPUT_PULLUP);
    pinMode(WIFI_STATUS_PIN, OUTPUT);
+   if (!LittleFS.begin()) {
+      loge("LittleFS mount failed");
+   }
 }
 
 void Device::Run() {

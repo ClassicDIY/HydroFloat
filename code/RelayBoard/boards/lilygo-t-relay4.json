@@ -2,7 +2,7 @@
   "build": {
     "arduino": {
       "ldscript": "esp32_out.ld",
-      "partitions": "min_spiffs.csv"
+      "partitions": "partitions/default_4MB.csv"
     },
     "core": "esp32",
     "extra_flags": [

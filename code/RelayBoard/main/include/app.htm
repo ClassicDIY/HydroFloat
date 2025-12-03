@@ -9,18 +9,18 @@ const char relay_script[] PROGMEM = R"rawliteral(
 	)rawliteral";
 
 const char app_config_field[] PROGMEM = R"rawliteral(
-	<p><div class="fld">
-		<label>Relay {RelayN}:</label>
-		<label for="{th_id}">Threshold: </label><input type="number" id="{th_id}" name="{th_id}" placeholder="1..100" value={th_value} min="1" max="100" required step="1">
-		<label for="{state_id}">State: </label><input type="text" id="{state_id}" name="{state_id}" value="{state_value}" required minlength="1" maxlength="10">
-	</div></p>
+	<div class="fld">
+		<label>Relay %RelayN%:</label>
+		<label for="threshold">Threshold: </label><input type="number" id="threshold" name="threshold" placeholder="1..100" value=%th_value% min="1" max="100" required step="1">
+		<label for="label">State: </label><input type="text" id="label" name="label" value="%state_value%" required minlength="1" maxlength="10">
+	</div>
 	)rawliteral";
 
 const char app_config_fields[] PROGMEM = R"rawliteral(
 	<div class="center-flex">
-		<form action='/submit' method='post'>
-		<fieldset id="levels"><legend>Level</legend>
-			{acf}
+		<fieldset id="levels">
+			<legend>Level</legend>
+			%acf%
 		</fieldset>
 	</div>
 	)rawliteral";
@@ -29,8 +29,7 @@ const char home_html[] PROGMEM = R"rawliteral(
 	<!DOCTYPE html><html lang=\"en\">
 	<head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1, user-scalable=no\"/>
 	<title>{n}</title>
-
-	{style}
+	<link rel="stylesheet" href="/style.css">
 
 	<script>
 		<!--- Start of gauge code  --->

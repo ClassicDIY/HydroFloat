@@ -1,4 +1,3 @@
-const char style[] PROGMEM = R"rawliteral(
 <style>
     .container {
         display: flex;
@@ -211,6 +210,10 @@ const char style[] PROGMEM = R"rawliteral(
         font-size: 0.95rem;
     }
 
+    .fld {
+        margin-bottom: 8px;
+    }
+
     .check {
         display: flex;
         align-items: center;
@@ -304,4 +307,3 @@ const char style[] PROGMEM = R"rawliteral(
         font-size:1.5rem;
     }
 </style>
-)rawliteral";

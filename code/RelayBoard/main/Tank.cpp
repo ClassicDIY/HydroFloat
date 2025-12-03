@@ -5,9 +5,9 @@
 #include "IOT.h"
 #include "CoilSet.h"
 #include "Tank.h"
-#include "style.htm"
 #include "app.htm"
 #include "BLE.h"
+#include "app_script.js"
 
 namespace CLASSICDIY {
 
@@ -36,7 +36,6 @@ void Tank::Setup() {
    });
    _asyncServer.on("/", HTTP_GET, [this](AsyncWebServerRequest *request) {
       String page = home_html;
-      page.replace("{style}", style);
       page.replace("{n}", _iot.getThingName().c_str());
       page.replace("{v}", APP_VERSION);
       String scripts;
@@ -66,6 +65,35 @@ void Tank::Setup() {
       serializeJson(app, s);
       request->send(200, "text/html", s);
    });
+   _asyncServer.on(
+       "/app_fields", HTTP_POST,
+       [this](AsyncWebServerRequest *request) {
+          // Called after all chunks are received
+          logv("Full body received: %s", _bodyBuffer.c_str());
+          // Parse JSON safely
+          JsonDocument doc; // adjust size to expected payload
+          DeserializationError err = deserializeJson(doc, _bodyBuffer);
+          if (err) {
+             logd("JSON parse failed: %s", err.c_str());
+          } else {
+             logd("app_fields: %s", formattedJson(doc).c_str());
+             _relayThresholds.clear();
+             onLoadSetting(doc);
+          }
+          _bodyBuffer = ""; // clear for next request
+       },
+       NULL, // file upload handler (not used here)
+       [this](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
+          logv("Chunk received: len=%d, index=%d, total=%d", len, index, total);
+          // Append chunk to buffer
+          _bodyBuffer.reserve(total); // reserve once for efficiency
+          for (size_t i = 0; i < len; i++) {
+             _bodyBuffer += (char)data[i];
+          }
+          if (index + len == total) {
+             logd("Upload complete!");
+          }
+       });
    _webSocket.onEvent([this](AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len) {
       (void)len;
       if (type == WS_EVT_CONNECT) {
@@ -121,31 +149,27 @@ void Tank::onLoadSetting(JsonDocument &doc) {
    }
 }
 
-void Tank::addApplicationConfigs(String &page) {
-   
-   String appFieldSet = app_config_fields;
-   String appFields;
-
-   int i = 1;
-   for (auto &rule : _relayThresholds) {
-      String appField = app_config_field;
-      std::stringstream th;
-      th << "relay_th" << i;
-      appField.replace("{RelayN}", String(i).c_str());
-      appField.replace("{th_id}", th.str().c_str());
-      appField.replace("{th_value}", String(rule.threshold).c_str());
-      std::stringstream st;
-      st << "relay_state" << i++;
-      appField.replace("{state_id}", st.str().c_str());
-      appField.replace("{state_value}", rule.label.c_str());
-      appFields += appField;
+String Tank::appTemplateProcessor(const String &var) {
+   logd("appTemplate template: %s", var.c_str());
+   if (var == "app_fields") {
+      return String(app_config_fields);
    }
-   appFieldSet.replace("{acf}", appFields.c_str());
-   page.replace("{onload}", "");
-   page.replace("{validate}", "");
-   page.replace("{validateInputs}", "");
-   page.replace("{script}", "");
-   page += appFieldSet;
+   if (var == "acf") {
+      String appFields;
+      int i = 1;
+      for (auto &rule : _relayThresholds) {
+         String appField = app_config_field;
+         appField.replace("%RelayN%", String(i++).c_str());
+         appField.replace("%th_value%", String(rule.threshold).c_str());
+         appField.replace("%state_value%", rule.label.c_str());
+         appFields += appField;
+      }
+      return appFields;
+   }
+   if (var == "app_script_js") {
+      return String(app_script_js);
+   }
+   return String("");
 }
 
 void Tank::Process() {
@@ -250,7 +274,7 @@ void Tank::onNetworkState(NetworkState state) {
 #if defined(HasModbus) && defined(HasRS485)
 bool Tank::onModbusMessage(ModbusMessage &msg) {
    return false;
-   //ToDo
+   // ToDo
 }
 #endif
 

@@ -32,7 +32,7 @@ class Tank : public Device, public IOTCallbackInterface {
    void onNetworkState(NetworkState state);
    void onSaveSetting(JsonDocument &doc);
    void onLoadSetting(JsonDocument &doc);
-   void addApplicationConfigs(String &page);
+   String appTemplateProcessor(const String &var);
 
  protected:
 #ifdef HasMQTT
@@ -44,6 +44,7 @@ class Tank : public Device, public IOTCallbackInterface {
    boolean _discoveryPublished = false;
    String _lastMessagePublished;
    float _lastWaterLevel = 0;
+   String _bodyBuffer;
 #ifdef Has_OLED
    Oled _oled = Oled();
 #endif

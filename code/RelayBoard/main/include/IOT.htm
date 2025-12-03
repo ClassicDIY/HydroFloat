@@ -4,7 +4,7 @@ const char *redirect_html PROGMEM = R"rawliteral(
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>{n}</title>
+        <title>%title%</title>
         <script>
             window.onload = function() {
                 window.location.href = "http://{ip}";
@@ -35,269 +35,35 @@ const char update_html[] PROGMEM = R"rawliteral(
 )rawliteral";
 
 const char network_config_top[] PROGMEM = R"rawliteral(
-    <!DOCTYPE html><html lang=\"en\"><head><meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-    <title>{n}</title>
-    <script>
-      const NetworkSelection = ["NotConnected", "APMode", "WiFiMode", "EthernetMode", "ModemMode"];
-      const NetworkSelectionEnum = {
-        NotConnected: 0,
-        APMode: 1,
-        WiFiMode: 2,
-        EthernetMode: 3,
-        ModemMode: 4
-      };
-      const ModbusMode = ["tcp", "rtu"];
-      const ModbusModeEnum = {
-        tcp: 0,
-        rtu: 1
-      };
-      const UART_Parity = ["none", "", "even", "odd"];
-      const UART_ParityEnum = {
-        none: 0,
-        even: 2,
-        odd: 3
-      };
-      const UART_StopBits = ["1", "1.5", "2", "max"];
-      const UART_StopBitsEnum  = {
-        1: 0,
-        2: 2,
-      };
-
-      function dhcpCheck(checkbox) {
-          const fieldset = document.getElementById("dhcp");
-          fieldset.disabled = checkbox.checked;
-      }
-      function mqttFieldset(checkbox) {
-          const fieldset = document.getElementById("mqtt");
-          fieldset.disabled = !checkbox.checked;
-      }
-      function modbusFieldset(checkbox) {
-          const fieldset = document.getElementById("modbus");
-          fieldset.disabled = !checkbox.checked;
-      }
-      function modbusBridgeFieldset(checkbox) {
-          const fieldset = document.getElementById("modbusBridge");
-          fieldset.disabled = !checkbox.checked;
-      }
-      function showMBFields() {
-          document.querySelectorAll('#modbusSelector-container > div').forEach(div => div.classList.add('hidden'));
-          var selectedFld = document.getElementById('modbusModeSelector');
-          if (selectedFld) {
-              document.getElementById(selectedFld.value + '-fields').classList.remove('hidden');
-          }
-          toggleMDBridgeFieldset();
-      }
-      function showFields() {
-          // Hide all fields
-          document.querySelectorAll('#networkSelector-container > div').forEach(div => div.classList.add('hidden'));
-          // Get selected value
-          var selectedValue = document.getElementById('networkSelector').value.trim();
-          if (selectedValue === "APMode") {
-            var modbusEl = document.getElementById('modbus');
-            if (modbusEl) {
-              modbusEl.classList.add('hidden');
-            }
-            var mqttEl = document.getElementById('mqtt');
-            if (mqttEl) {
-              mqttEl.classList.add('hidden');
-            }
-          }
-          else {
-              document.getElementById(selectedValue + '-fields').classList.remove('hidden');
-              var mqttEl = document.getElementById('mqtt');
-              if (mqttEl) {
-                mqttEl.classList.remove('hidden');
-              }
-              var modbusEl = document.getElementById('modbus');
-              if (modbusEl) {
-                modbusEl.classList.remove('hidden');
-              }
-              showMBFields();
-          }
-      }
-
-      function toggleMDBridgeFieldset() {
-        const selector = document.getElementById("modbusModeSelector");
-        const fieldset = document.getElementById("modbusBridge");
-        if (fieldset) {
-          fieldset.classList.toggle("hidden", selector.value === "rtu");
-        }
-      }
-
-      window.onload = function() {
-        loadSettings();
-        {onload}
-        const form = document.getElementById('settingsForm');
-        if (form) {
-          form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const status = document.getElementById('status');
-            status.textContent = '';
-            try {
-              const data = getFormValues();
-              const res = await fetch('/settings', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-              });
-              console.log(await res.text());
-              if (!res.ok) throw new Error('Save failed');
-              status.innerHTML = '<span class="ok">Settings saved.</span>';
-            } catch (e) {
-              status.innerHTML = '<span class="err">' + e.message + '</span>';
-            }
-          });
-
-        }
-      }
-      function validateInputs() {
-          {validateInputs}
-          return true;
-      }
-
-      async function loadSettings() {
-      const status = document.getElementById('status');
-        try {
-          const res = await fetch('/appsettings', { method: 'GET' });
-          if (!res.ok) throw new Error('Failed to load');
-          const cfg = await res.json();
-          setAppValues(cfg);
-        } catch (e) {
-          status.innerHTML = '<span class="err">Load failed.</span>';
-        }
-        try {
-          const res = await fetch('/iotsettings', { method: 'GET' });
-          if (!res.ok) throw new Error('Failed to load');
-          const cfg = await res.json();
-          setIotValues(cfg);
-          showFields();
-          var mqttEl = document.getElementById('mqttCheckbox');
-          if (mqttEl) {
-            mqttFieldset(mqttEl);
-          }
-          var modbusEl = document.getElementById('modbusCheckbox');
-          if (modbusEl) {
-            modbusFieldset(modbusEl);
-            modbusBridgeFieldset(document.getElementById("modbusBridgeCheckbox"));
-            toggleMDBridgeFieldset();
-          }
-          var dhcpEl = document.getElementById('useDHCP');
-          if (dhcpEl) {
-            dhcpCheck(dhcpEl);
-          }
-        } catch (e) {
-          status.innerHTML = '<span class="err">Load failed.</span>';
-        }
-      }
-
-      function setIotValues(cfg) {
-        const form = document.getElementById('settingsForm');
-        for (const [k, v] of Object.entries(cfg)) {
-          const el = form.elements.namedItem(k);
-          if (!el) continue;
-          if (el.type === 'checkbox') {
-            el.checked = !!v;
-          } else if (el.tagName === 'SELECT') {
-            // Special handling for select elements with enum values
-            if (k === "Network") {
-              el.value = NetworkSelection[v];
-            } else if (k === "modbusMode") {
-              el.value = ModbusMode[v];
-            } else if (k === "svrRTUParity") {
-              el.value = UART_Parity[v];
-            } else if (k === "svrRTUStopBits") {
-              el.value = UART_StopBits[v];
-             } else if (k === "modbusClientParity") {
-              el.value = UART_Parity[v];
-            } else if (k === "modbusClientStopBits") {
-              el.value = UART_StopBits[v];
-            }
-          } else {
-             el.value = v;
-          }
-        }
-      }
-
-      function setAppValues(cfg) {
-        const form = document.getElementById('settingsForm');
-        for (const [k, v] of Object.entries(cfg)) {
-          const el = form.elements.namedItem(k);
-          if (!el) continue;
-          if (el.type === 'checkbox') {
-            el.checked = !!v;
-          } else {
-             el.value = v;
-          }
-        }
-      }
-
-      function getFormValues() {
-        const form = document.getElementById('settingsForm');
-        const data = {};
-        for (const el of form.elements) {
-          if (!el.name) continue;
-          if (el.type === 'checkbox') {
-            data[el.name] = el.checked;
-          } else if (el.type === 'number') {
-            data[el.name] = el.value === '' ? null : Number(el.value);
-          } else if (el.tagName === 'SELECT') {
-            // Special handling for select elements with enum values
-            if (el.name === "Network") {
-              data[el.name] = NetworkSelectionEnum[el.value];
-            } else if (el.name === "modbusMode") {
-              data[el.name] = ModbusModeEnum[el.value];
-            } else if (el.name === "svrRTUParity") {
-              el.value = UART_ParityEnum[el.value];
-            } else if (el.name === "svrRTUStopBits") {
-              el.value = UART_StopBitsEnum[el.value];
-             } else if (el.name === "modbusClientParity") {
-              el.value = UART_ParityEnum[el.value];
-            } else if (el.name === "modbusClientStopBits") {
-              el.value = UART_StopBitsEnum[el.value];
-            }
-          } else {
-            data[el.name] = el.value;
-          }
-        }
-        return data;
-      }
-      async function saveSettings(evt) {
-        evt.preventDefault();
-        const status = document.getElementById('status');
-        status.textContent = '';
-
-        try {
-          const data = getFormValues();
-          {validate}
-
-          const res = await fetch('/settings', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-          });
-          console.log("saveSettings:", JSON.stringify(data));
-          if (!res.ok) throw new Error('Save failed');
-          status.innerHTML = '<span class="ok">Settings saved.</span>';
-        } catch (e) {
-          status.innerHTML = '<span class="err">' + e.message + '</span>';
-        }
-      }
-    {script}
-    </script>
-    {style}
-    </head>
-    <body>
-      <div id="config">
-      <div id="hdr">
-          <h2>{n}</h2>
-          <div class="ver">Firmware version '{v}'</div>
-          <hr>
+  <!DOCTYPE html><html lang="en"><head><meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <title>%title%</title>
+  <script src="/script.js"></script>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="icon" type="image/png" href="/favicon.png">
+  </head>
+  <body>
+    <div id="config">
+    <div id="hdr">
+        <h2>%header%</h2>
+        <div class="ver">Firmware version '%version%'</div>
+        <hr>
+    </div>
+    <form id="settingsForm" method='post'>
+      <div id="iot_fields">
+      %iot_fields%
       </div>
-
+      <div id="app_fields">
+      %app_fields%
+      </div>
+      <div id="status" class="status"></div>
+      <div class="actions">
+        <button type="submit" >Apply</button>
+      </div>
+    </form>
+  %config_links%
 )rawliteral";
 
 const char network_config[] PROGMEM = R"rawliteral(
-<form id="settingsForm" method='post'>
 <fieldset id="network" class="fs">
   <legend>Network</legend>
 
@@ -316,8 +82,8 @@ const char network_config[] PROGMEM = R"rawliteral(
     <select id="networkSelector" name="Network" onchange="showFields()">
       <option value="APMode" >AP Mode</option>
       <option value="WiFiMode">WiFi</option>
-      <option value="EthernetMode" {ETH}>Ethernet</option>
-      <option value="ModemMode" {4G}>4G Modem</option>
+      <option value="EthernetMode" %ETH%>Ethernet</option>
+      <option value="ModemMode" %4G%>4G Modem</option>
     </select>
   </div>
 
@@ -329,7 +95,7 @@ const char network_config[] PROGMEM = R"rawliteral(
       </div>
       <div class="form-grid">
         <label for="WiFi_Pw">WiFi Password</label>
-        <input type="text" id="WiFi_Pw" name="WiFi_Pw"maxlength="32">
+        <input type="text" id="WiFi_Pw" name="WiFi_Pw" maxlength="32">
       </div>
     </div>
 
@@ -494,20 +260,12 @@ const char config_modbusBridge[] PROGMEM = R"rawliteral(
   </fieldset>
 )rawliteral";
 
-const char config_apply_button[] PROGMEM = R"rawliteral(
-  <div id="status" class="status"></div>
-  <div class="actions">
-    <button type="submit" >Apply</button>
-  </div>
-  </form>
-)rawliteral";
-
 const char config_links[] PROGMEM = R"rawliteral(
   <div class="link-row">
     <a href='/'>Home page</a>
     <a href='/update'>Firmware update</a>
     <a href='/reboot'>Reboot</a>
-  </div>
+  </div></div>
   </body></html>
 )rawliteral";
 
@@ -515,6 +273,6 @@ const char config_links_no_ota[] PROGMEM = R"rawliteral(
   <div class="link-row">
     <a href='/'>Home page</a> 
     <a href='/reboot'>Reboot</a> 
-  </div>
+  </div></div>
   </body></html>
 )rawliteral";

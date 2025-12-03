@@ -2,7 +2,7 @@ BasedOnStyle: LLVM
 IndentWidth: 3
 SortIncludes: false
 IncludeBlocks: Preserve
-ColumnLimit: 150
+ColumnLimit: 180
 BraceWrapping:
   AfterFunction: false
   AfterClass: false

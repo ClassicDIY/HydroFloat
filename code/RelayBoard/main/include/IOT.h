@@ -73,6 +73,7 @@ class IOT : public IOTServiceInterface {
    String _Gateway_IP;
    uint32_t _settingsChecksum = 0;
    bool _needToReboot = false;
+   String _bodyBuffer;
 
 #ifdef HasMQTT
    bool _useMQTT = false;
