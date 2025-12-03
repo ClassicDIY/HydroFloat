@@ -8,6 +8,7 @@ namespace CLASSICDIY {
 class Device {
  protected:
    void Init();
+   void InitCommon();
    void Run();
    uint16_t NumberOfRelays() { return NUM_RELAYS; }
    void SetRelay(const uint8_t index, const uint8_t value);
