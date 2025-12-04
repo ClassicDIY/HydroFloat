@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "*.htm": "cpp",
+        "*.js": "cpp"
+    }
+}

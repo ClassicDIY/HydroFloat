@@ -1,3 +1,4 @@
+const char iot_script[] PROGMEM = R"rawliteral(
 const NetworkSelection = ["NotConnected", "APMode", "WiFiMode", "EthernetMode", "ModemMode"];
 const NetworkSelectionEnum = {
     NotConnected: 0,
@@ -17,10 +18,10 @@ const UART_ParityEnum = {
     even: 2,
     odd: 3
 };
-const UART_StopBits = ["1", "1.5", "2", "max"];
+const UART_StopBits = ["", "1", "1.5", "2", "max"];
 const UART_StopBitsEnum = {
-    1: 0,
-    2: 2,
+    1: 1,
+    2: 3,
 };
 
 function dhcpCheck(checkbox) {
@@ -127,7 +128,7 @@ async function loadSettings() {
         status.innerHTML = '<span class="err">Load failed.</span>';
     }
     try {
-        const res = await fetch('/iotsettings', { method: 'GET' });
+        const res = await fetch('/iot_fields', { method: 'GET' });
         if (!res.ok) throw new Error('Failed to load');
         const cfg = await res.json();
         setIotValues(cfg);
@@ -171,10 +172,12 @@ function setIotValues(cfg) {
                 el.value = UART_Parity[v];
             } else if (k === "svrRTUStopBits") {
                 el.value = UART_StopBits[v];
-            } else if (k === "modbusClientParity") {
+            } else if (k === "clientRTUParity") {
                 el.value = UART_Parity[v];
-            } else if (k === "modbusClientStopBits") {
+            } else if (k === "clientRTUStopBits") {
                 el.value = UART_StopBits[v];
+            } else {
+                el.value = v;
             }
         } else {
             el.value = v;
@@ -182,17 +185,37 @@ function setIotValues(cfg) {
     }
 }
 
-function setAppValues(cfg) {
-    const form = document.getElementById('settingsForm');
-    for (const [k, v] of Object.entries(cfg)) {
-        const el = form.elements.namedItem(k);
-        if (!el) continue;
-        if (el.type === 'checkbox') {
-            el.checked = !!v;
+function setAppValues(cfg, prefix = "") {
+  const form = document.getElementById("settingsForm");
+
+  for (const [k, v] of Object.entries(cfg)) {
+    const keyPath = prefix ? `${prefix}.${k}` : k;
+
+    if (Array.isArray(v)) {
+      // Handle arrays: expect form fields named like conversions[0].minV
+      v.forEach((item, i) => {
+        if (typeof item === "object") {
+          // recurse into object elements
+          setAppValues(item, `${keyPath}[${i}]`);
         } else {
-            el.value = v;
+          const el = form.elements.namedItem(`${keyPath}[${i}]`);
+          if (el) el.value = item;
         }
+      });
+    } else if (typeof v === "object" && v !== null) {
+      // Handle nested objects
+      setAppValues(v, keyPath);
+    } else {
+      // Handle scalars
+      const el = form.elements.namedItem(keyPath);
+      if (!el) continue;
+      if (el.type === "checkbox") {
+        el.checked = !!v;
+      } else {
+        el.value = v;
+      }
     }
+  }
 }
 
 function getFormValues(section) {
@@ -211,13 +234,16 @@ function getFormValues(section) {
             } else if (el.name === "modbusMode") {
                 data[el.name] = ModbusModeEnum[el.value];
             } else if (el.name === "svrRTUParity") {
-                el.value = UART_ParityEnum[el.value];
+                data[el.name] = UART_ParityEnum[el.value];
             } else if (el.name === "svrRTUStopBits") {
-                el.value = UART_StopBitsEnum[el.value];
-            } else if (el.name === "modbusClientParity") {
-                el.value = UART_ParityEnum[el.value];
-            } else if (el.name === "modbusClientStopBits") {
-                el.value = UART_StopBitsEnum[el.value];
+                data[el.name] = UART_StopBitsEnum[el.value];
+            } else if (el.name === "clientRTUParity") {
+                data[el.name] = UART_ParityEnum[el.value];
+            } else if (el.name === "clientRTUStopBits") {
+                data[el.name] = UART_StopBitsEnum[el.value];
+            } 
+            else {
+                 data[el.name] = el.value;
             }
         } else {
             data[el.name] = el.value;
@@ -227,3 +253,5 @@ function getFormValues(section) {
 }
 
 %appScript%
+
+)rawliteral";

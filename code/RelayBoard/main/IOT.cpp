@@ -2,7 +2,12 @@
 #include <thread>
 #include <chrono>
 #include <ESPmDNS.h>
+#ifdef UseLittleFS
 #include <LittleFS.h>
+#else
+#include "iot_script.js"
+#include "style.css"
+#endif
 #ifdef HasEthernet
 #include <SPI.h>
 #include <Ethernet.h>
@@ -10,7 +15,6 @@
 #include "esp_eth_mac.h"
 #include "driver/spi_master.h"
 #include "esp_wifi.h"
-
 #endif
 #ifdef HasLTE
 #include "network_dce.h"
@@ -92,9 +96,9 @@ void IOT::Init(IOTCallbackInterface *iotCB, AsyncWebServer *pwebServer) {
    } else if (_useModbusBridge) {
       // Set up Serial2 connected to Modbus RTU Client
       RTUutils::prepareHardwareSerial(Serial2);
-      SerialConfig conf = getSerialConfig(_modbusClientParity, _modbusClientStopBits);
-      logd("Serial baud: %d conf: 0x%x", _modbusClientBaudRate, conf);
-      Serial2.begin(_modbusClientBaudRate, conf, RS485_RXD, RS485_TXD);
+      SerialConfig conf = getSerialConfig(_clientRTUParity, _clientRTUStopBits);
+      logd("Serial baud: %d conf: 0x%x", _clientRTUBaud, conf);
+      Serial2.begin(_clientRTUBaud, conf, RS485_RXD, RS485_TXD);
       while (!Serial2) {
       }
    }
@@ -170,21 +174,18 @@ void IOT::Init(IOTCallbackInterface *iotCB, AsyncWebServer *pwebServer) {
    //     request->send_P(200, "image/x-icon", (const char*)favicon_ico, sizeof(favicon_ico));
    //   });
 
-   _pwebServer->on("/iotsettings", HTTP_GET, [this](AsyncWebServerRequest *request) {
-      JsonDocument doc;
-      saveSettingsToJson(doc);
-      String s;
-      serializeJson(doc, s);
-      request->send(200, "text/html", s);
-   });
    _pwebServer->on("/style.css", HTTP_GET, [this](AsyncWebServerRequest *request) {
+#ifdef UseLittleFS
       if (LittleFS.exists("/style.css")) {
          // Serve from filesystem
          request->send(LittleFS, "/style.css", "text/css");
       }
+#else
+      request->send(200, "text/css", iot_style);
+#endif
    });
    _pwebServer->on("/script.js", HTTP_GET, [this](AsyncWebServerRequest *request) {
-      // logd("script loaded");
+#ifdef UseLittleFS
       if (LittleFS.exists("/iot_script.js")) {
          // Serve from filesystem
          request->send(LittleFS, "/iot_script.js", "application/javascript", true, [this](const String &var) {
@@ -192,6 +193,12 @@ void IOT::Init(IOTCallbackInterface *iotCB, AsyncWebServer *pwebServer) {
             return _iotCB->appTemplateProcessor(var);
          });
       }
+#else
+      request->send(200, "application/javascript", iot_script, [this](const String &var) {
+         logd("script template: %s", var.c_str());
+         return _iotCB->appTemplateProcessor(var);
+      });
+#endif
    });
    // Return the /settings web page
    _pwebServer
@@ -248,7 +255,18 @@ void IOT::Init(IOTCallbackInterface *iotCB, AsyncWebServer *pwebServer) {
                });
             })
        .addMiddleware(&basicAuth);
-   _pwebServer->on("/submit", HTTP_POST, [this](AsyncWebServerRequest *request) { logd("/ **************************** submit called with %d args", request->args()); });
+   _pwebServer->on("/submit", HTTP_POST, [this](AsyncWebServerRequest *request) {
+      logd("/ **************************** submit called with %d args", request->args());
+   });
+
+   _pwebServer->on("/iot_fields", HTTP_GET, [this](AsyncWebServerRequest *request) {
+      JsonDocument doc;
+      saveSettingsToJson(doc);
+      logd("HTTP_GET iot_fields: %s", formattedJson(doc).c_str());
+      String s;
+      serializeJson(doc, s);
+      request->send(200, "text/html", s);
+   });
    _pwebServer->on(
        "/iot_fields", HTTP_POST,
        [this](AsyncWebServerRequest *request) {
@@ -260,6 +278,7 @@ void IOT::Init(IOTCallbackInterface *iotCB, AsyncWebServer *pwebServer) {
           if (err) {
              logd("JSON parse failed: %s", err.c_str());
           } else {
+             logd("HTTP_POST iot_fields: %s", formattedJson(doc).c_str());
              loadSettingsFromJson(doc);
              saveSettings();
              RedirectToHome(request);
@@ -290,7 +309,6 @@ void IOT::RedirectToHome(AsyncWebServerRequest *request) {
 }
 
 void IOT::loadSettingsFromJson(JsonDocument &iot) {
-   logd("Loading: %s", formattedJson(iot).c_str());
    _AP_SSID = iot["AP_SSID"].isNull() ? TAG : iot["AP_SSID"].as<String>();
    _AP_Password = iot["AP_Pw"].isNull() ? DEFAULT_AP_PASSWORD : iot["AP_Pw"].as<String>();
    _NetworkSelection = iot["Network"].isNull() ? APMode : iot["Network"].as<NetworkSelection>();
@@ -317,7 +335,8 @@ void IOT::loadSettingsFromJson(JsonDocument &iot) {
    _useModbus = iot["useModbus"].isNull() ? false : iot["useModbus"].as<bool>();
    _ModbusMode = iot["modbusMode"].isNull() ? TCP : iot["modbusMode"].as<ModbusMode>();
    _modbusBaudRate = iot["svrRTUBaud"].isNull() ? 9600 : iot["svrRTUBaud"].as<uint32_t>();
-   _modbusParity = iot["svrRTUParity"].isNull() ? UART_PARITY_DISABLE : iot["svrRTUParity"].as<uart_parity_t>(); // ToDo handle string enums from web page
+   _modbusParity =
+       iot["svrRTUParity"].isNull() ? UART_PARITY_DISABLE : iot["svrRTUParity"].as<uart_parity_t>(); // ToDo handle string enums from web page
    _modbusStopBits = iot["svrRTUStopBits"].isNull() ? UART_STOP_BITS_1 : iot["svrRTUStopBits"].as<uart_stop_bits_t>();
    _modbusPort = iot["modbusPort"].isNull() ? 502 : iot["modbusPort"].as<uint16_t>();
    _modbusID = iot["modbusID"].isNull() ? 1 : iot["modbusID"].as<uint16_t>();
@@ -326,9 +345,9 @@ void IOT::loadSettingsFromJson(JsonDocument &iot) {
    _discrete_input_base_addr = iot["discreteBase"].isNull() ? DISCRETE_BASE_ADDRESS : iot["discreteBase"].as<uint16_t>();
    _holding_register_base_addr = iot["holdingRegBase"].isNull() ? HOLDING_REGISTER_BASE_ADDRESS : iot["holdingRegBase"].as<uint16_t>();
    _useModbusBridge = iot["useModbusBridge"].isNull() ? false : iot["useModbusBridge"].as<bool>();
-   _modbusClientBaudRate = iot["modbusClientBaudRate"].isNull() ? 9600 : iot["modbusClientBaudRate"].as<uint32_t>();
-   _modbusClientParity = iot["modbusClientParity"].isNull() ? UART_PARITY_DISABLE : iot["modbusClientParity"].as<uart_parity_t>();
-   _modbusClientStopBits = iot["modbusClientStopBits"].isNull() ? UART_STOP_BITS_1 : iot["modbusClientStopBits"].as<uart_stop_bits_t>();
+   _clientRTUBaud = iot["clientRTUBaud"].isNull() ? 9600 : iot["clientRTUBaud"].as<uint32_t>();
+   _clientRTUParity = iot["clientRTUParity"].isNull() ? UART_PARITY_DISABLE : iot["clientRTUParity"].as<uart_parity_t>();
+   _clientRTUStopBits = iot["clientRTUStopBits"].isNull() ? UART_STOP_BITS_1 : iot["clientRTUStopBits"].as<uart_stop_bits_t>();
 #endif
 }
 
@@ -389,9 +408,9 @@ void IOT::saveSettingsToJson(JsonDocument &iot) {
    iot["discreteBase"] = _discrete_input_base_addr;
    iot["holdingRegBase"] = _holding_register_base_addr;
    iot["useModbusBridge"] = _useModbusBridge;
-   iot["modbusClientBaudRate"] = _modbusClientBaudRate;
-   iot["modbusClientParity"] = _modbusClientParity;
-   iot["modbusClientStopBits"] = _modbusClientStopBits;
+   iot["clientRTUBaud"] = _clientRTUBaud;
+   iot["clientRTUParity"] = _clientRTUParity;
+   iot["clientRTUStopBits"] = _clientRTUStopBits;
 #endif
 }
 
@@ -543,7 +562,10 @@ void IOT::UpdateOledDisplay() {
    if (_networkState == OnLine) {
 
       if (_networkState == OnLine) {
-         oled_display.println(_NetworkSelection == APMode ? "AP Mode" : _NetworkSelection == WiFiMode ? "WiFi: " : _NetworkSelection == EthernetMode ? "Ethernet" : "LTE: ");
+         oled_display.println(_NetworkSelection == APMode         ? "AP Mode"
+                              : _NetworkSelection == WiFiMode     ? "WiFi: "
+                              : _NetworkSelection == EthernetMode ? "Ethernet"
+                                                                  : "LTE: ");
          oled_display.setTextSize(1);
          oled_display.println(_Current_IP);
       } else if (_networkState == Connecting) {
@@ -597,7 +619,8 @@ void IOT::GoOnline() {
                _MBclientRTU.begin(Serial2);
                _MBclientRTU.useModbusRTU();
                _MBclientRTU.onDataHandler([this](ModbusMessage response, uint32_t token) {
-                  logv("RTU Response: serverID=%d, FC=%d, Token=%08X, length=%d", response.getServerID(), response.getFunctionCode(), token, response.size());
+                  logv("RTU Response: serverID=%d, FC=%d, Token=%08X, length=%d", response.getServerID(), response.getFunctionCode(), token,
+                       response.size());
                   return _iotCB->onModbusMessage(response);
                });
                _MBclientRTU.onErrorHandler([this](Modbus::Error mbError, uint32_t token) {
@@ -782,7 +805,8 @@ esp_err_t IOT::ConnectEthernet() {
    if ((ret = esp_efuse_mac_get_default(base_mac_addr)) == ESP_OK) {
       uint8_t local_mac_1[6];
       esp_derive_local_mac(local_mac_1, base_mac_addr);
-      logi("ETH MAC: %02X:%02X:%02X:%02X:%02X:%02X", local_mac_1[0], local_mac_1[1], local_mac_1[2], local_mac_1[3], local_mac_1[4], local_mac_1[5]);
+      logi("ETH MAC: %02X:%02X:%02X:%02X:%02X:%02X", local_mac_1[0], local_mac_1[1], local_mac_1[2], local_mac_1[3], local_mac_1[4],
+           local_mac_1[5]);
       eth_mac_config_t mac_config = ETH_MAC_DEFAULT_CONFIG(); // Init common MAC and PHY configs to default
       eth_phy_config_t phy_config = ETH_PHY_DEFAULT_CONFIG();
       phy_config.phy_addr = 1;
