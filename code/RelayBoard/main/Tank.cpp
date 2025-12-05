@@ -98,16 +98,16 @@ void Tank::Setup() {
    _webSocket.onEvent([this](AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len) {
       (void)len;
       if (type == WS_EVT_CONNECT) {
-         // logi("Home Page Connected!");
+         logd("ws_home socket Connected!");
          _lastWaterLevel = -1; // force a broadcast
          client->setCloseClientOnQueueFull(false);
-         // client->ping();
+         client->ping();
       } else if (type == WS_EVT_DISCONNECT) {
-         // logi("Home Page Disconnected!");
+         logi("ws_home socket Disconnected!");
       } else if (type == WS_EVT_ERROR) {
          loge("ws error");
       } else if (type == WS_EVT_PONG) {
-         // 	logd("ws pong");
+         logd("ws pong");
       }
    });
 }
