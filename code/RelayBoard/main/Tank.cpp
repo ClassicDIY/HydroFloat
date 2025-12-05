@@ -151,7 +151,6 @@ void Tank::onLoadSetting(JsonDocument &doc) {
 }
 
 String Tank::appTemplateProcessor(const String &var) {
-   logd("appTemplate template: %s", var.c_str());
    if (var == "app_fields") {
       return String(app_config_fields);
    }
@@ -170,6 +169,7 @@ String Tank::appTemplateProcessor(const String &var) {
    if (var == "app_script_js") {
       return String(app_script_js);
    }
+   logd("Did not find app template for: %s", var.c_str());
    return String("");
 }
 
