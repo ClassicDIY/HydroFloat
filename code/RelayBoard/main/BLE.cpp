@@ -22,12 +22,12 @@ bool deviceConnected = false;
 
 // See the following for generating UUIDs:
 // https://www.uuidgenerator.net/
-#define SERVICE_UUID "91bad492-b950-4226-aa2b-4ede9fa42f59"
+#define SERVICE_UUID "bab4685d-8523-437b-b683-bf010c9de021"
 
-BLECharacteristic bmeLevelCharacteristics("cba1d466-344c-4be3-ab3f-189f80dd7518", BLECharacteristic::PROPERTY_NOTIFY);
+BLECharacteristic bmeLevelCharacteristics("1867b1f0-5ba0-4c3c-8989-418c56698a6a", BLECharacteristic::PROPERTY_NOTIFY);
 BLEDescriptor bmeLevelDescriptor(BLEUUID((uint16_t)0x2902));
 
-BLECharacteristic bmeStatusCharacteristics("ca73b3ba-39f6-4ab3-91ae-186dc9577d99", BLECharacteristic::PROPERTY_NOTIFY);
+BLECharacteristic bmeStatusCharacteristics("ed8d106c-35e5-427c-9c34-924f214dc3c5", BLECharacteristic::PROPERTY_NOTIFY);
 BLEDescriptor bmeStatusDescriptor(BLEUUID((uint16_t)0x2903));
 
 // Setup callbacks onConnect and onDisconnect

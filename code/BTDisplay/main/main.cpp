@@ -22,15 +22,15 @@ TFT_eSPI oled_display = TFT_eSPI(); // Create object "oled_display"
 
 /* UUID's of the service, characteristic that we want to read*/
 // BLE Service
-static BLEUUID bmeServiceUUID("91bad492-b950-4226-aa2b-4ede9fa42f59");
+static BLEUUID bmeServiceUUID("bab4685d-8523-437b-b683-bf010c9de021");
 
 // BLE Characteristics
 
 // Level Characteristic
-static BLEUUID levelCharacteristicUUID("cba1d466-344c-4be3-ab3f-189f80dd7518");
+static BLEUUID levelCharacteristicUUID("1867b1f0-5ba0-4c3c-8989-418c56698a6a");
 
 // Status Characteristic
-static BLEUUID statusCharacteristicUUID("ca73b3ba-39f6-4ab3-91ae-186dc9577d99");
+static BLEUUID statusCharacteristicUUID("ed8d106c-35e5-427c-9c34-924f214dc3c5");
 
 static BLEClient *pClient = nullptr;
 static boolean doConnect = false;
