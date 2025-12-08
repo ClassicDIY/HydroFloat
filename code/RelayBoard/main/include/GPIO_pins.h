@@ -24,7 +24,8 @@
 #define RELAY_1 GPIO_NUM_36
 #define RELAY_2 GPIO_NUM_39
 
-#elif Waveshare_Relay_6CH
+#endif
+#ifdef Waveshare_Relay_6CH
 
 #define RGB_LED_PIN GPIO_NUM_38
 #define GPIO_PIN_Buzzer GPIO_NUM_21   // Buzzer Control GPIO
@@ -34,6 +35,9 @@
 #define Resolution 8
 #define Dutyfactor 200
 
+void inline RGB_Light(uint8_t red_val, uint8_t green_val, uint8_t blue_val) {
+   neopixelWrite(RGB_LED_PIN, green_val, red_val, blue_val); // RGB color adjustment
+}
 
 #define SensorPin GPIO_NUM_3
 
