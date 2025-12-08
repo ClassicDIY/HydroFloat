@@ -211,6 +211,9 @@ void Tank::Process() {
          }
       }
       doc["state"] = state.c_str();
+#ifdef Has_OLED
+      _oled.update(waterLevel, state.c_str());
+#endif
       serializeJson(doc, s);
       _webSocket.textAll(s);
       if (_lastMessagePublished == s) // anything changed?
