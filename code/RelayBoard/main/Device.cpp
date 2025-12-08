@@ -8,10 +8,6 @@
 #include "Log.h"
 #include "Device.h"
 
-#ifdef Has_OLED
-Adafruit_SSD1306 oled_display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
-#endif
-
 namespace CLASSICDIY {
 
 void Device::InitCommon() {
@@ -20,6 +16,9 @@ void Device::InitCommon() {
    if (!LittleFS.begin()) {
       loge("LittleFS mount failed");
    }
+#endif
+#ifdef Has_OLED
+   _oled.Init();
 #endif
 }
 
@@ -34,13 +33,6 @@ void Device::Init() {
    HT74HC595->setAllLow();
    logd("Set HT74HC595_OUT_EN to low level to enable relay output");
    digitalWrite(HT74HC595_OUT_EN, LOW);
-#ifdef Has_OLED
-   if (!oled_display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
-      loge("SSD1306 allocation failed");
-   } else {
-      oled_display.clearDisplay();
-   }
-#endif
 }
 
 void Device::Run() {
@@ -101,13 +93,6 @@ gpio_num_t _relays[NUM_RELAYS] = {RELAY_1, RELAY_2, RELAY_3, RELAY_4};
 
 void Device::Init() {
    InitCommon();
-#ifdef Has_OLED
-   if (!oled_display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
-      loge("SSD1306 allocation failed");
-   } else {
-      oled_display.clearDisplay();
-   }
-#endif
    for (int i = 0; i < NUM_RELAYS; i++) {
       pinMode(_relays[i], OUTPUT);
    }
@@ -140,13 +125,6 @@ gpio_num_t _relays[NUM_RELAYS] = {RELAY_1, RELAY_2, RELAY_3, RELAY_4, RELAY_5, R
 
 void Device::Init() {
    InitCommon();
-#ifdef Has_OLED
-   if (!oled_display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
-      loge("SSD1306 allocation failed");
-   } else {
-      oled_display.clearDisplay();
-   }
-#endif
    for (int i = 0; i < NUM_RELAYS; i++) {
       pinMode(_relays[i], OUTPUT);
    }

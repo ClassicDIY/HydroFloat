@@ -6,6 +6,7 @@
 #define TAG "HydroFloat"
 
 #define NTP_SERVER "pool.ntp.org"
+#define NTP_SERVER2 "time.nist.gov"
 #define HOME_ASSISTANT_PREFIX "homeassistant" //Home Assistant Auto discovery root topic
 
 #define WATCHDOG_TIMEOUT 10 // time in seconds to trigger the watchdog reset
@@ -15,8 +16,8 @@
 #define AP_BLINK_RATE 600
 #define NC_BLINK_RATE 100
 
-#define AP_TIMEOUT 1000
-// #define AP_TIMEOUT 30000 //set back to 1000 in production
+// #define AP_TIMEOUT 1000 //set back to 30000 in production
+#define AP_TIMEOUT 30000 
 #define FLASHER_TIMEOUT 10000
 #define GPIO0_FactoryResetCountdown 5000 // do a factory reset if GPIO0 is pressed for GPIO0_FactoryResetCountdown
 #define WS_CLIENT_CLEANUP 5000

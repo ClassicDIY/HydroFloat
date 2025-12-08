@@ -63,9 +63,10 @@ uint8_t xOffset(uint8_t textSize, uint8_t numberOfCharaters)
 // When the BLE Server sends a new level reading with the notify property
 static void levelNotifyCallback(BLERemoteCharacteristic *pBLERemoteCharacteristic, uint8_t *pData, size_t length, bool isNotify)
 {
-  if (length < 16)
+  logd("levelNotifyCallback, length: %d", length);
+  if (length < 20)
   {
-    char levelChar[16];
+    char levelChar[20];
     strncpy(levelChar, (char *)pData, length);
     levelChar[length] = '\0';
     oled_display.setCursor(xOffset(LEVEL_TEXT_SIZE, length), LEVEL_TEXT_POS);
@@ -79,6 +80,7 @@ static void levelNotifyCallback(BLERemoteCharacteristic *pBLERemoteCharacteristi
 // When the BLE Server sends a new status reading with the notify property
 static void statusNotifyCallback(BLERemoteCharacteristic *pBLERemoteCharacteristic, uint8_t *pData, size_t length, bool isNotify)
 {
+  logd("statusNotifyCallback");
   if (length < 16)
   {
     char statusChar[16];
@@ -110,23 +112,33 @@ bool connectToServer()
   if (pRemoteService == nullptr)
   {
     loge("Failed to find our service UUID: %s", bmeServiceUUID.toString().c_str());
-    return (false);
   }
 
   // Obtain a reference to the characteristics in the service of the remote BLE server.
   levelCharacteristic = pRemoteService->getCharacteristic(levelCharacteristicUUID);
-  statusCharacteristic = pRemoteService->getCharacteristic(statusCharacteristicUUID);
-
-  if (levelCharacteristic == nullptr || statusCharacteristic == nullptr)
+  if (levelCharacteristic == nullptr)
   {
     loge("Failed to find our characteristic UUID");
-    return false;
   }
-  logi(" - Found our characteristics");
+  else
+  {
+    logi(" - Found levelCharacteristic");
 
-  // Assign callback functions for the Characteristics
-  levelCharacteristic->registerForNotify(levelNotifyCallback);
-  statusCharacteristic->registerForNotify(statusNotifyCallback);
+    // Assign callback functions for the Characteristics
+    levelCharacteristic->registerForNotify(levelNotifyCallback);
+  }
+
+  statusCharacteristic = pRemoteService->getCharacteristic(statusCharacteristicUUID);
+
+  if (statusCharacteristic == nullptr)
+  {
+    loge("Failed to find our characteristic UUID");
+  }
+  else
+  {
+    logi(" - Found statusCharacteristic");
+    statusCharacteristic->registerForNotify(statusNotifyCallback);
+  }
   return true;
 }
 

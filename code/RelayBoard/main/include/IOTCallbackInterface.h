@@ -20,5 +20,9 @@ class IOTCallbackInterface {
 #if defined(HasModbus) && defined(HasRS485)
    virtual bool onModbusMessage(ModbusMessage &msg);
 #endif
+#ifdef Has_OLED
+   virtual void update(const char *mode, const char *detail);
+   virtual void update(const char *mode, int count);
+#endif
 };
 } // namespace CLASSICDIY

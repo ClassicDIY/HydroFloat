@@ -33,6 +33,10 @@ class Tank : public Device, public IOTCallbackInterface {
    void onSaveSetting(JsonDocument &doc);
    void onLoadSetting(JsonDocument &doc);
    String appTemplateProcessor(const String &var);
+#ifdef Has_OLED
+   void update(const char *mode, const char *detail);
+   void update(const char *mode, int count);
+#endif
 
  protected:
 #ifdef HasMQTT
@@ -45,8 +49,5 @@ class Tank : public Device, public IOTCallbackInterface {
    String _lastMessagePublished;
    float _lastWaterLevel = 0;
    String _bodyBuffer;
-#ifdef Has_OLED
-   Oled _oled = Oled();
-#endif
 };
 } // namespace CLASSICDIY

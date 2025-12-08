@@ -35,28 +35,8 @@ void Tank::Setup() {
       }
    });
    _asyncServer.on("/", HTTP_GET, [this](AsyncWebServerRequest *request) {
-      String page = home_html;
-      page.replace("{n}", _iot.getThingName().c_str());
-      page.replace("{v}", APP_VERSION);
-      String scripts;
-      String relays;
-      int i = 1;
-      for (auto &rule : _relayThresholds) {
-         String relay = relay_field;
-         std::stringstream relayId;
-         relayId << "relay" << i;
-         std::stringstream relayname;
-         relayname << "Relay " << i++;
-         relay.replace("{RelayId}", relayId.str().c_str());
-         relay.replace("{RelayN}", relayname.str().c_str());
-         relays += relay;
-         String script = relay_script;
-         script.replace("{RelayId}", relayId.str().c_str());
-         scripts += script;
-      }
-      page.replace("{Relays}", relays);
-      page.replace("{relay_script}", scripts);
-      request->send(200, "text/html", page);
+      logd("HTTP_GET /");
+      request->send(200, "text/html", home_html, [this](const String &var) { return appTemplateProcessor(var); });
    });
    _asyncServer.on("/appsettings", HTTP_GET, [this](AsyncWebServerRequest *request) {
       JsonDocument app;
@@ -151,6 +131,39 @@ void Tank::onLoadSetting(JsonDocument &doc) {
 }
 
 String Tank::appTemplateProcessor(const String &var) {
+   if (var == "title") {
+      return String(_iot.getThingName().c_str());
+   }
+   if (var == "version") {
+      return String(APP_VERSION);
+   }
+   if (var == "Relays") {
+      String relays;
+      int i = 1;
+      for (auto &rule : _relayThresholds) {
+         String relay = relay_field;
+         std::stringstream relayId;
+         relayId << "relay" << i;
+         std::stringstream relayname;
+         relayname << "Relay " << i++;
+         relay.replace("{RelayId}", relayId.str().c_str());
+         relay.replace("{RelayN}", relayname.str().c_str());
+         relays += relay;
+      }
+      return relays;
+   }
+   if (var == "relay_script") {
+      String scripts;
+      int i = 1;
+      for (auto &rule : _relayThresholds) {
+         std::stringstream relayId;
+         relayId << "relay" << i++;
+         String script = relay_script;
+         script.replace("{RelayId}", relayId.str().c_str());
+         scripts += script;
+      }
+      return scripts;
+   }
    if (var == "app_fields") {
       return String(app_config_fields);
    }
@@ -198,10 +211,6 @@ void Tank::Process() {
          }
       }
       doc["state"] = state.c_str();
-#ifdef Has_OLED
-      _oled.update(waterLevel, state.c_str());
-#endif
-
       serializeJson(doc, s);
       _webSocket.textAll(s);
       if (_lastMessagePublished == s) // anything changed?
@@ -271,6 +280,11 @@ void Tank::onNetworkState(NetworkState state) {
 #endif
    }
 }
+
+#ifdef Has_OLED
+void Tank::update(const char *mode, const char *detail) { _oled.update(_iot.getThingName().c_str(), mode, detail); }
+void Tank::update(const char *mode, int count) { _oled.update(_iot.getThingName().c_str(), mode, count); }
+#endif
 
 #if defined(HasModbus) && defined(HasRS485)
 bool Tank::onModbusMessage(ModbusMessage &msg) {
@@ -349,7 +363,7 @@ boolean Tank::PublishDiscoverySub(IOTypes type, const char *entityName, const ch
 
    char buffer[STR_LEN];
    JsonObject device = payload["device"].to<JsonObject>();
-   device["name"] = _iot.getThingName();
+   device["name"] = _iot.getThingName().c_str();
    device["sw_version"] = APP_VERSION;
    device["manufacturer"] = "ClassicDIY";
    sprintf(buffer, "%s (%X)", TAG, _iot.getUniqueId());

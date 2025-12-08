@@ -31,7 +31,8 @@ void setup() {
    esp_task_wdt_init(60, true); // 60-second timeout, panic on timeout
    esp_task_wdt_add(NULL);
    _tank->Setup();
-   logd("Setup Done");
+   logd("Free Heap after setup: %d KB", ESP.getFreeHeap() / 1024);
+   logd("------------Setup Done ---------------");
 }
 
 void loop() {

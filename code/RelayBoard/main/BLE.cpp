@@ -1,11 +1,7 @@
-
 #include <Arduino.h>
 #ifdef Has_BT
 #include "Log.h"
-#include <BLEDevice.h>
-#include <BLEServer.h>
-#include <BLEUtils.h>
-#include <BLE2902.h>
+#include <NimBLEDevice.h>
 #include <Wire.h>
 
 #include "BLE.h"
@@ -17,64 +13,65 @@
 unsigned long lastTime = 0;
 unsigned long timerDelay = 30000;
 
-BLEServer *pServer;
+NimBLEServer *pServer;
 bool deviceConnected = false;
 
-// See the following for generating UUIDs:
-// https://www.uuidgenerator.net/
+// UUIDs
 #define SERVICE_UUID "bab4685d-8523-437b-b683-bf010c9de021"
+#define LEVEL_CHAR_UUID "1867b1f0-5ba0-4c3c-8989-418c56698a6a"
+#define STATUS_CHAR_UUID "ed8d106c-35e5-427c-9c34-924f214dc3c5"
 
-BLECharacteristic bmeLevelCharacteristics("1867b1f0-5ba0-4c3c-8989-418c56698a6a", BLECharacteristic::PROPERTY_NOTIFY);
-BLEDescriptor bmeLevelDescriptor(BLEUUID((uint16_t)0x2902));
+NimBLECharacteristic *bmeLevelCharacteristics;
+NimBLECharacteristic *bmeStatusCharacteristics;
 
-BLECharacteristic bmeStatusCharacteristics("ed8d106c-35e5-427c-9c34-924f214dc3c5", BLECharacteristic::PROPERTY_NOTIFY);
-BLEDescriptor bmeStatusDescriptor(BLEUUID((uint16_t)0x2903));
-
-// Setup callbacks onConnect and onDisconnect
-class MyServerCallbacks : public BLEServerCallbacks {
-   void onConnect(BLEServer *pServer) {
+// Callbacks for connect/disconnect
+class MyServerCallbacks : public NimBLEServerCallbacks {
+   void onConnect(NimBLEServer *pServer, NimBLEConnInfo &connInfo) override {
+      logd("onConnect");
       deviceConnected = true;
       pServer->getAdvertising()->stop();
-   };
-   void onDisconnect(BLEServer *pServer) {
+   }
+   void onDisconnect(NimBLEServer *pServer, NimBLEConnInfo &connInfo, int reason) override {
+      logd("onDisconnect");
       deviceConnected = false;
       pServer->getAdvertising()->start();
    }
 };
 
 void BLE::begin() {
-   BLEDevice::init(bleServerName);
-   pServer = BLEDevice::createServer();
+   NimBLEDevice::init(bleServerName);
+   NimBLEDevice::setDeviceName("BME280_ESP32");
+   pServer = NimBLEDevice::createServer();
    pServer->setCallbacks(new MyServerCallbacks());
-   BLEService *bmeService = pServer->createService(SERVICE_UUID);
-   bmeService->addCharacteristic(&bmeLevelCharacteristics);
-   bmeLevelDescriptor.setValue("BME Float Level");
-   bmeLevelCharacteristics.addDescriptor(&bmeLevelDescriptor);
-   bmeService->addCharacteristic(&bmeStatusCharacteristics);
-   bmeStatusDescriptor.setValue("BME Float State");
-   bmeStatusCharacteristics.addDescriptor(&bmeStatusDescriptor);
+   NimBLEDevice::setSecurityAuth(false, false, false);
+   NimBLEService *bmeService = pServer->createService(SERVICE_UUID);
+   bmeLevelCharacteristics = bmeService->createCharacteristic(LEVEL_CHAR_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY);
+   bmeStatusCharacteristics = bmeService->createCharacteristic(STATUS_CHAR_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY);
    bmeService->start();
-
+   NimBLEAdvertisementData advData;
+   advData.setName("BME280_ESP32");                       // Device name
+   advData.setCompleteServices(NimBLEUUID(SERVICE_UUID)); // Service UUID
+   NimBLEAdvertisementData scanData;
+   scanData.setName("BME280_ESP32");
    // Start advertising
-   BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
+   NimBLEAdvertising *pAdvertising = NimBLEDevice::getAdvertising();
    pAdvertising->addServiceUUID(SERVICE_UUID);
-   pServer->getAdvertising()->start();
-   logi("Waiting a client connection to notify...");
+   pAdvertising->setAdvertisementData(advData);
+   pAdvertising->setScanResponseData(scanData);
+   pAdvertising->start();
+   logd("Waiting for client connection to notify...");
 }
 
 void BLE::update(uint16_t level, const char *state) {
    if (deviceConnected) {
       char buffer[16];
       sprintf(buffer, "%d%%", level);
-      // Set float level Characteristic value and notify connected client
-      bmeLevelCharacteristics.setValue(buffer);
-      bmeLevelCharacteristics.notify();
-      // Set relayStatus value and notify connected client
-      bmeStatusCharacteristics.setValue(state);
-      bmeStatusCharacteristics.notify();
-
+      bmeLevelCharacteristics->setValue(buffer);
+      bmeLevelCharacteristics->notify();
+      bmeStatusCharacteristics->setValue(state);
+      bmeStatusCharacteristics->notify();
    } else {
-      logw("Device not connected, cannot update BLE characteristics");
+      logd("Device not connected, cannot update BLE characteristics");
    }
 }
 #endif
