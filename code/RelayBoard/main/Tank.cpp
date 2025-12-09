@@ -182,6 +182,9 @@ String Tank::appTemplateProcessor(const String &var) {
    if (var == "app_script_js") {
       return String(app_script_js);
    }
+   if (var == "validateInputs") {
+      return String("");
+   }
    logd("Did not find app template for: %s", var.c_str());
    return String("");
 }
