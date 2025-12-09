@@ -449,7 +449,7 @@ void IOT::Run() {
             } else {
 #ifdef Has_OLED
                int countdown = (AP_TIMEOUT - (millis() - _waitInAPTimeStamp)) / 1000;
-               _iotCB->update("AP Mode", countdown);
+               _iotCB->getOledInterface().Display(getThingName().c_str(), APP_VERSION, "AP Mode", countdown);
 #endif
             }
          }
@@ -570,7 +570,7 @@ void IOT::setState(NetworkState newState) {
       mode = NetworkStateStrings[_networkState];
       detail = "...";
    }
-   _iotCB->update(mode.c_str(), detail.c_str());
+   _iotCB->getOledInterface().Display(getThingName().c_str(), APP_VERSION, mode.c_str(), detail.c_str());
 #endif
    switch (newState) {
    case OffLine:

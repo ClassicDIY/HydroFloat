@@ -215,7 +215,7 @@ void Tank::Process() {
       }
       doc["state"] = state.c_str();
 #ifdef Has_OLED
-      _oled.update(waterLevel, state.c_str());
+      _oled.Display(state.c_str(), waterLevel);
 #endif
       serializeJson(doc, s);
       _webSocket.textAll(s);
@@ -286,11 +286,6 @@ void Tank::onNetworkState(NetworkState state) {
 #endif
    }
 }
-
-#ifdef Has_OLED
-void Tank::update(const char *mode, const char *detail) { _oled.update(_iot.getThingName().c_str(), mode, detail); }
-void Tank::update(const char *mode, int count) { _oled.update(_iot.getThingName().c_str(), mode, count); }
-#endif
 
 #if defined(HasModbus) && defined(HasRS485)
 bool Tank::onModbusMessage(ModbusMessage &msg) {

@@ -2,6 +2,7 @@
 #include <Arduino.h>
 #include <ESPAsyncWebServer.h>
 #include "IOTCallbackInterface.h"
+#include "IOledServiceInterface.h"
 #include "Enumerations.h"
 #include "Log.h"
 #include "Defines.h"
@@ -34,8 +35,7 @@ class Tank : public Device, public IOTCallbackInterface {
    void onLoadSetting(JsonDocument &doc);
    String appTemplateProcessor(const String &var);
 #ifdef Has_OLED
-   void update(const char *mode, const char *detail);
-   void update(const char *mode, int count);
+   IOledServiceInterface& getOledInterface() override {  return _oled; };
 #endif
 
  protected:
