@@ -1,10 +1,10 @@
 # HydroFloat
 ## Piezoelectric Submersible Level Sensor using ESP32 X4 Relay board. 
-#### Similar to the FloatLevel project but does not have MQTT, Modbus. Wifi runs in AP mode only.
 #### Relays are triggered at configurable water levels
 
 <a href="https://www.buymeacoffee.com/r4K2HIB" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
 
+  <li>Use Wifi Access Point, default AP: HydroFloat, default PW: 12345678. Browse 192.168.4.1 and go to Configuration Page to set the levels.</li>
 <p align="left">
   <img src="./Pictures/home_page.png" width="600"/>
   <img src="./Pictures/Settings.png" width="600"/>
@@ -33,7 +33,6 @@ Used the following development tools;
 
 <ul>
   <li>Visual Studio Code with the PlatformIO extension.</li>
-  <li>Access Point is HydroFloat, use the default 12345678 as the AP password. Browse 192.168.4.1 and go to Configuration Page to set the levels.
 </ul>
 
 
