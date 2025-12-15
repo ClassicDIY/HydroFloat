@@ -5,13 +5,16 @@
 <a href="https://www.buymeacoffee.com/r4K2HIB" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
 
   <li>Use Wifi Access Point, default AP: HydroFloat, default PW: 12345678. Browse 192.168.4.1 and go to Configuration Page to set the levels.</li>
+
+  
 <p align="left">
   <img src="./Pictures/home_page.png" width="600"/>
   <img src="./Pictures/Settings.png" width="600"/>
   <img src="./Pictures/HydroFloat_T-Relay.jpg" width="600"/>
 </p>
  
-This project is based on the ESP32, it works with a Submersible Level Sensor 4-20ma Pressure Sensors.
+
+Works with a Submersible Level 4-20ma Pressure Sensors.
 
 |<a href="https://www.aliexpress.com/item/1005005275943365.html"> ESP32 X4 Relay Board</a>|<img src="./Pictures/Lilygo_Relay_Board.png" width="200"/>|
 |---|---|
