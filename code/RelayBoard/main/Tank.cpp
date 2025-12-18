@@ -217,6 +217,9 @@ void Tank::Process() {
 #ifdef Has_OLED
       _oled.Display(state.c_str(), waterLevel);
 #endif
+#ifdef Has_TFT
+      _tft.Update(state.c_str(), waterLevel);
+#endif
       serializeJson(doc, s);
       _webSocket.textAll(s);
       if (_lastMessagePublished == s) // anything changed?
@@ -230,7 +233,6 @@ void Tank::Process() {
       _iot.Publish("readings", s.c_str(), false);
 #endif
       _lastMessagePublished = s;
-
       logd("Published readings: %s", s.c_str());
    }
    return;
@@ -238,6 +240,9 @@ void Tank::Process() {
 
 void Tank::onNetworkState(NetworkState state) {
    _networkState = state;
+   if (state >= NoNetwork) {
+      _tft.AnalogMeter(_relayThresholds); // setup analog display after APMode timeout
+   }
    if (state == OnLine) {
 #ifdef HasModbus
       // READ_INPUT_REGISTER
@@ -296,7 +301,7 @@ bool Tank::onModbusMessage(ModbusMessage &msg) {
 
 #ifdef HasMQTT
 
-void Tank::onMqttConnect() {
+void Tank::onMqttConnect(esp_mqtt_client_handle_t &client) {
    if (!_discoveryPublished) {
       for (int i = 0; i < NumberOfRelays(); i++) {
          std::stringstream ss;

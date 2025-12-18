@@ -3,6 +3,7 @@
 #include "GPIO_pins.h"
 #include "Enumerations.h"
 #include "Oled.h"
+#include "tft.h"
 
 namespace CLASSICDIY {
 class Device {
@@ -15,6 +16,9 @@ class Device {
    boolean GetRelay(const uint8_t index);
 #ifdef Has_OLED
    Oled _oled = Oled();
+#endif
+#ifdef Has_TFT
+   TFT _tft = TFT();
 #endif
    NetworkState _networkState = Boot;
    unsigned long _lastBlinkTime = 0;

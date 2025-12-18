@@ -100,7 +100,12 @@ void inline RGB_Light(uint8_t red_val, uint8_t green_val, uint8_t blue_val) {
 
 #define RTC_IRQ GPIO_NUM_18
 
-#define SensorPin A0
+#ifdef Has_TFT
+#define SensorPin GPIO_NUM_1
+#else
+#define SensorPin GPIO_NUM_8
+#endif
+
 // I2C
 #define I2C_SDA GPIO_NUM_16
 #define I2C_SCL GPIO_NUM_17

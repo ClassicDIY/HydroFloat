@@ -40,6 +40,7 @@ class IOT : public IOTServiceInterface {
    boolean Publish(const char *subtopic, JsonDocument &payload, boolean retained = false);
    boolean Publish(const char *subtopic, float value, boolean retained = false);
    boolean PublishMessage(const char *topic, JsonDocument &payload, boolean retained);
+   boolean PublishMessage(const char *topic, const char *payload, boolean retained);
 #endif
 
 #ifdef HasModbus
@@ -70,6 +71,7 @@ class IOT : public IOTServiceInterface {
    uint32_t _settingsChecksum = 0;
    bool _needToReboot = false;
    String _bodyBuffer;
+   int _lastCountdown;
 
 #ifdef HasMQTT
    bool _useMQTT = false;

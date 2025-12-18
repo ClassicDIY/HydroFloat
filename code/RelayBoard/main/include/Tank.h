@@ -2,20 +2,15 @@
 #include <Arduino.h>
 #include <ESPAsyncWebServer.h>
 #include "IOTCallbackInterface.h"
-#include "IOledServiceInterface.h"
+#include "IDisplayServiceInterface.h"
 #include "Enumerations.h"
 #include "Log.h"
+#include "Thresholds.h"
 #include "Defines.h"
 #include "Device.h"
 #include "AnalogSensor.h"
 
 namespace CLASSICDIY {
-
-struct Thresholds {
-   uint16_t threshold;
-   String label;
-   bool active;
-};
 
 class Tank : public Device, public IOTCallbackInterface {
  public:
@@ -24,7 +19,7 @@ class Tank : public Device, public IOTCallbackInterface {
    void Setup();
    void Process();
 #ifdef HasMQTT
-   void onMqttConnect();
+   void onMqttConnect(esp_mqtt_client_handle_t &client);
    void onMqttMessage(char *topic, char *payload);
 #endif
 #if defined(HasModbus) && defined(HasRS485)
@@ -35,7 +30,10 @@ class Tank : public Device, public IOTCallbackInterface {
    void onLoadSetting(JsonDocument &doc);
    String appTemplateProcessor(const String &var);
 #ifdef Has_OLED
-   IOledServiceInterface& getOledInterface() override {  return _oled; };
+   IDisplayServiceInterface& getDisplayInterface() override {  return _oled; };
+#endif
+#ifdef Has_TFT
+   IDisplayServiceInterface& getDisplayInterface() override { return _tft; };
 #endif
 
  protected:

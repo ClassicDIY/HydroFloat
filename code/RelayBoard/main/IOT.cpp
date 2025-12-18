@@ -165,7 +165,9 @@ void IOT::Init(IOTCallbackInterface *iotCB, AsyncWebServer *pwebServer) {
          request->send(LittleFS, "/style.css", "text/css");
       }
 #else
-      request->send(200, "text/css", iot_style);
+      request->send(200, "text/css", iot_style, [this](const String &var) {
+         return _iotCB->appTemplateProcessor(var);
+      });
 #endif
    });
    _pwebServer->on("/script.js", HTTP_GET, [this](AsyncWebServerRequest *request) {
@@ -235,7 +237,9 @@ void IOT::Init(IOTCallbackInterface *iotCB, AsyncWebServer *pwebServer) {
                });
             })
        .addMiddleware(&basicAuth);
-   _pwebServer->on("/submit", HTTP_POST, [this](AsyncWebServerRequest *request) { logd("/ **************************** submit called with %d args", request->args()); });
+   _pwebServer->on("/submit", HTTP_POST, [this](AsyncWebServerRequest *request) {
+      logd("/ **************************** submit called with %d args", request->args());
+   });
 
    _pwebServer->on("/iot_fields", HTTP_GET, [this](AsyncWebServerRequest *request) {
       JsonDocument doc;
@@ -447,12 +451,17 @@ void IOT::Run() {
                   setState(Connecting);
                }
             } else {
-#ifdef Has_OLED
+#if  defined(Has_OLED) || defined(Has_TFT)
                int countdown = (AP_TIMEOUT - (millis() - _waitInAPTimeStamp)) / 1000;
-               _iotCB->getOledInterface().Display(getThingName().c_str(), APP_VERSION, "AP Mode", countdown);
+               if (countdown != _lastCountdown) {
+                  _lastCountdown = countdown;
+                  _iotCB->getDisplayInterface().Display(getThingName().c_str(), APP_VERSION, "AP Mode", countdown);
+               }
 #endif
             }
          }
+      } else {
+         setState(NoNetwork);
       }
       if (_AP_Connected) {
          _dnsServer.processNextRequest();
@@ -465,7 +474,7 @@ void IOT::Run() {
          WiFi.disconnect();
          setState(ApState);
       }
-   } else if (_networkState == OffLine) { // went offline, try again...
+   } else if (_networkState == OffLine && _NetworkSelection > APMode) { // went offline, try again...
       logw("went offline, try again...");
       setState(Connecting);
    } else if (_networkState == OnLine) {
@@ -557,10 +566,11 @@ void IOT::setState(NetworkState newState) {
    logd("_networkState: %s", _networkState == Boot         ? "Boot"
                              : _networkState == ApState    ? "ApState"
                              : _networkState == Connecting ? "Connecting"
+                             : _networkState == NoNetwork  ? "NoNetwork"
                              : _networkState == OnLine     ? "OnLine"
                                                            : "OffLine");
 
-#ifdef Has_OLED
+#if  defined(Has_OLED) || defined(Has_TFT)
    String mode;
    String detail;
    if (_networkState == OnLine) {
@@ -570,7 +580,7 @@ void IOT::setState(NetworkState newState) {
       mode = NetworkStateStrings[_networkState];
       detail = "...";
    }
-   _iotCB->getOledInterface().Display(getThingName().c_str(), APP_VERSION, mode.c_str(), detail.c_str());
+   _iotCB->getDisplayInterface().Display(getThingName().c_str(), APP_VERSION, mode.c_str(), detail.c_str());
 #endif
    switch (newState) {
    case OffLine:
@@ -699,7 +709,8 @@ esp_err_t IOT::ConnectEthernet() {
    if ((ret = esp_efuse_mac_get_default(base_mac_addr)) == ESP_OK) {
       uint8_t local_mac_1[6];
       esp_derive_local_mac(local_mac_1, base_mac_addr);
-      logi("ETH MAC: %02X:%02X:%02X:%02X:%02X:%02X", local_mac_1[0], local_mac_1[1], local_mac_1[2], local_mac_1[3], local_mac_1[4], local_mac_1[5]);
+      logi("ETH MAC: %02X:%02X:%02X:%02X:%02X:%02X", local_mac_1[0], local_mac_1[1], local_mac_1[2], local_mac_1[3], local_mac_1[4],
+           local_mac_1[5]);
       eth_mac_config_t mac_config = ETH_MAC_DEFAULT_CONFIG(); // Init common MAC and PHY configs to default
       eth_phy_config_t phy_config = ETH_PHY_DEFAULT_CONFIG();
       phy_config.phy_addr = 1;
@@ -902,7 +913,7 @@ void IOT::HandleMQTT(int32_t event_id, void *event_data) {
       char buf[128];
       sprintf(buf, "%s/set/#", _rootTopicPrefix);
       esp_mqtt_client_subscribe(client, buf, 0);
-      _iotCB->onMqttConnect();
+      _iotCB->onMqttConnect(client);
       esp_mqtt_client_publish(client, _willTopic, "Online", 0, 1, 0);
       break;
    case MQTT_EVENT_DISCONNECTED:
@@ -1024,6 +1035,17 @@ boolean IOT::PublishMessage(const char *topic, JsonDocument &payload, boolean re
       rVal = (esp_mqtt_client_publish(_mqtt_client_handle, topic, s.c_str(), s.length(), 0, retained) != -1);
       if (!rVal) {
          loge("**** Configuration payload exceeds MAX MQTT Packet Size, %d [%s] topic: %s", s.length(), s.c_str(), topic);
+      }
+   }
+   return rVal;
+}
+
+boolean IOT::PublishMessage(const char *topic, const char *payload, boolean retained) {
+   boolean rVal = false;
+   if (_mqtt_client_handle != 0) {
+      rVal = (esp_mqtt_client_publish(_mqtt_client_handle, topic, payload, strlen(payload), 0, retained) != -1);
+      if (!rVal) {
+         loge("**** Configuration payload exceeds MAX MQTT Packet Size, %d [%s] topic: %s", strlen(payload), payload, topic);
       }
    }
    return rVal;

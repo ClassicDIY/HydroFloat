@@ -20,6 +20,9 @@ void Device::InitCommon() {
 #ifdef Has_OLED
    _oled.Init();
 #endif
+#ifdef Has_TFT
+   _tft.Init();
+#endif
 }
 
 #ifdef Lilygo_Relay_6CH
