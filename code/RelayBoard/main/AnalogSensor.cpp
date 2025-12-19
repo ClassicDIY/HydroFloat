@@ -3,47 +3,50 @@
 #include "Defines.h"
 #include "AnalogSensor.h"
 
+namespace CLASSICDIY {
 
-namespace CLASSICDIY{
-	
-	AnalogSensor::AnalogSensor(int channel) {
-		_channel = channel;
-		_count = 0;
-		_numberOfSummations = 0;
-		_rollingSum = 0;
-		// pinMode(channel, ANALOG);
-	}
+AnalogSensor::AnalogSensor(int channel) {
+   _channel = channel;
+   pinMode(channel, ANALOG);
+}
 
-	AnalogSensor::~AnalogSensor()	{
-	}
+AnalogSensor::~AnalogSensor() {}
 
-	float AnalogSensor::Level()	{
-		double adcReading_mv = analogReadMilliVolts(_channel);
-		float percent = (adcReading_mv - SensorVoltageMin) * 100 / (SensorVoltageMax - SensorVoltageMin);
-		float averagePercent = AddReading(percent);
-		averagePercent = roundf(averagePercent); // round to 0 decimal place
-		#ifdef LOG_SENSOR_VOLTAGE
-		if (_count++ > 100)	{
-			logd("Sensor Reading: %d percent: %f, averagePercent:%f", adcReading, percent , averagePercent);
-			_count = 0;
-		}
-		#endif
-		return averagePercent;
-	}
+float AnalogSensor::Level() {
+   float rVal = 0;
+   // --- Oversampled ADC read ---
+   double sensorVoltage = ReadOversampledADC();
+   if (sensorVoltage > SensorVoltageMin) {
+      rVal = (sensorVoltage - SensorVoltageMin) * 100 / (SensorVoltageMax - SensorVoltageMin);
+   }
+   // --- Filtering chain ---
+   float median = FilterMedian(rVal);
+   float filtered = FilterEMA(median);
+   filtered = roundf(filtered * 10.0f);
+   return filtered / 10.0f;
+}
 
-	float AnalogSensor::AddReading(float val)	{
-		float currentAvg = 0.0;
-		if (_numberOfSummations > 0)		{
-			currentAvg = _rollingSum / _numberOfSummations;
-		}
-		if (_numberOfSummations < SAMPLESIZE)		{
-			_numberOfSummations++;
-		}
-		else		{
-			_rollingSum -= currentAvg;
-		}
-		_rollingSum += val;
-		return _rollingSum / _numberOfSummations;
-	}
-} 
+float AnalogSensor::ReadOversampledADC() {
+   const int samples = 32;
+   uint32_t sum = 0;
+   for (int i = 0; i < samples; i++)
+      sum += analogReadMilliVolts(_channel);
+   return (float)sum / samples;
+}
 
+float AnalogSensor::FilterEMA(float val) {
+   const float alpha = 0.12f; // tune 0.05–0.2 depending on responsiveness
+   _emaFiltered = (alpha * val) + ((1.0f - alpha) * _emaFiltered);
+   return _emaFiltered;
+}
+
+float AnalogSensor::FilterMedian(float val) {
+   _medianBuf[_medianIndex] = val;
+   _medianIndex = (_medianIndex + 1) % 3;
+   float a = _medianBuf[0];
+   float b = _medianBuf[1];
+   float c = _medianBuf[2];
+   // median of 3
+   return max(min(a, b), min(max(a, b), c));
+}
+} // namespace CLASSICDIY

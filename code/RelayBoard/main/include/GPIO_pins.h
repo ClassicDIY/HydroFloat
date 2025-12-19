@@ -11,6 +11,7 @@
 #ifdef ESP32_DEV_BOARD
 
 #define SensorPin GPIO_NUM_3
+#define ADC_Resolution 4095.0
 
 #define NUM_RELAYS 2                     // number of relays
 #define WIFI_STATUS_PIN GPIO_NUM_2   // LED Pin
@@ -40,6 +41,7 @@ void inline RGB_Light(uint8_t red_val, uint8_t green_val, uint8_t blue_val) {
 }
 
 #define SensorPin GPIO_NUM_3
+#define ADC_Resolution 4095.0
 
 // UARTS
 #define U0_TXD GPIO_NUM_43
@@ -69,6 +71,7 @@ void inline RGB_Light(uint8_t red_val, uint8_t green_val, uint8_t blue_val) {
 #define FACTORY_RESET_PIN GPIO_NUM_13 // Clear NVRAM
 
 #define SensorPin A0
+#define ADC_Resolution 4095.0
 
 #define NUM_RELAYS 4
 #define RELAY_1 GPIO_NUM_21 // RELAY GPIO switches
@@ -105,6 +108,7 @@ void inline RGB_Light(uint8_t red_val, uint8_t green_val, uint8_t blue_val) {
 #else
 #define SensorPin GPIO_NUM_8
 #endif
+#define ADC_Resolution 4095.0
 
 // I2C
 #define I2C_SDA GPIO_NUM_16
@@ -117,17 +121,4 @@ void inline RGB_Light(uint8_t red_val, uint8_t green_val, uint8_t blue_val) {
 #define OLED_RESET -1       // Reset pin # (or -1 if sharing Arduino reset pin)
 
 #endif
-#ifdef ESP32_X4_Relay_board // old blue board
 
-#define SensorPin A0
-#define SDA_PIN GPIO_NUM_21 // OLED Display SDA and SLC pins
-#define SLC_PIN GPIO_NUM_22
-#define NUM_RELAYS 4
-#define RELAY_1 GPIO_NUM_32 // RELAY GPIO switches
-#define RELAY_2 GPIO_NUM_33
-#define RELAY_3 GPIO_NUM_25
-#define RELAY_4 GPIO_NUM_26
-#define WIFI_STATUS_PIN GPIO_NUM_23  // LED Pin on the ESP32 X4 Relay board
-#define FACTORY_RESET_PIN GPIO_NUM_4 // Clear NVRAM
-
-#endif

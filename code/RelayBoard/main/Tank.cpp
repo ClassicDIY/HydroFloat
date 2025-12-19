@@ -240,9 +240,11 @@ void Tank::Process() {
 
 void Tank::onNetworkState(NetworkState state) {
    _networkState = state;
+#ifdef Has_TFT
    if (state >= NoNetwork) {
       _tft.AnalogMeter(_relayThresholds); // setup analog display after APMode timeout
    }
+#endif
    if (state == OnLine) {
 #ifdef HasModbus
       // READ_INPUT_REGISTER
