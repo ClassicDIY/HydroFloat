@@ -10,86 +10,62 @@ namespace CLASSICDIY {
 void TFT::Init() {
    tft.init();
    tft.setRotation(1); // Landscape
-   tft.fillScreen(TFT_SKYBLUE);
+   tft.fillScreen(TFT_BLACK);
    logd("Screen init: Width %d, Height %d", tft.width(), tft.height());
 }
 
-void TFT::Display(const char *pch, uint16_t level) {
-   tft.fillRect(0, 0, tft.width(), _hSplit, TFT_BLACK);
-   tft.setTextFont(1);
-   tft.setTextSize(STATUS_FONT);
-   tft.setTextColor(TFT_GREEN);
-   tft.setCursor(32, STATUS_Y);
-   String state = pch;
-   while (state.length() < 10) { // pad right to 10 characters to fill the display line
-      state += ' ';
-   }
-   tft.setCursor(xOffset(2, state.length()), STATUS_Y); // center it
-   tft.print(state.c_str());
-   char buffer[64];
-   sprintf(buffer, "%d%%", level);
-   tft.setCursor(xOffset(5, strlen(buffer)), LEVEL_Y);
-   tft.setTextSize(LEVEL_FONT);
-   tft.setTextColor(TFT_GREEN);
-   tft.print(buffer);
+void TFT::Display(const char *hdr1, const char *detail1, const char *hdr2, int count)
+{
+    tft.setTextFont(1);
+    int y = 0;
+    // hdr1
+    tft.setTextSize(HDR_FONT);
+    drawIfChanged(String(hdr1), _headerCache.hdr1, 0, y, TFT_GREEN);
+    y += 18;
+    // detail1
+    tft.setTextSize(DETAIL_FONT);
+    drawIfChanged(String(detail1), _headerCache.detail1, 0, y, TFT_GREEN);
+    y += 18;
+    // hdr2 + count
+    tft.setTextSize(MODE_FONT);
+    String hdr2Full = String(hdr2);
+    if (count > 0) {
+        hdr2Full += ":" + String(count);
+    }
+    drawIfChanged(hdr2Full, _headerCache.hdr2, 0, y, TFT_GREEN);
+    _headerCache.count = count;
 }
 
-uint8_t TFT::xOffset(uint8_t textSize, uint8_t numberOfCharaters) {
-   uint8_t textPixels = textSize * 6;
-   uint8_t rVal = (tft.width() - (numberOfCharaters * textPixels)) / 2;
-   return rVal;
+void TFT::Display(const char *hdr1, const char *detail1, const char *hdr2, const char *detail2)
+{
+    tft.setTextFont(1);
+    int y = 0;
+    // hdr1
+    tft.setTextSize(HDR_FONT);
+    drawIfChanged(String(hdr1), _headerCache.hdr1, 0, y, TFT_GREEN);
+    y += 18;
+    // detail1
+    tft.setTextSize(DETAIL_FONT);
+    drawIfChanged(String(detail1), _headerCache.detail1, 0, y, TFT_GREEN);
+    y += 18;
+    // hdr2
+    tft.setTextSize(MODE_FONT);
+    drawIfChanged(String(hdr2), _headerCache.hdr2, 0, y, TFT_GREEN);
+    y += 18;
+    // detail2
+    tft.setTextSize(DETAIL_FONT);
+    drawIfChanged(String(detail2), _headerCache.detail2, 0, y, TFT_GREEN);
 }
 
-void TFT::Display(const char *hdr1, const char *detail1, const char *hdr2, int count) {
-   tft.fillRect(0, 0, tft.width(), _hSplit, TFT_BLACK);
-   tft.setTextFont(1);
-   tft.setTextSize(HDR_FONT);
-   tft.setTextColor(TFT_GREEN);
-   tft.setCursor(0, 0);
-   char buf[BUF_SIZE];
-   memset(buf, 0, BUF_SIZE);
-   strncpy(buf, hdr1, BUF_SIZE);
-   tft.println(buf); // limit hdr to 8 char for font size 2
-   tft.setTextSize(DETAIL_FONT);
-   tft.setCursor(0, 18);
-   memset(buf, 0, BUF_SIZE);
-   strncpy(buf, detail1, BUF_SIZE);
-   tft.println(buf);
-   tft.setTextSize(MODE_FONT);
-   tft.setCursor(0, 36);
-   memset(buf, 0, BUF_SIZE);
-   strncpy(buf, hdr2, BUF_SIZE);
-   tft.print(buf);
-   if (count > 0) {
-      tft.printf(":%d", count);
-   }
-}
-
-void TFT::Display(const char *hdr1, const char *detail1, const char *hdr2, const char *detail2) {
-   tft.fillRect(0, 0, tft.width(), _hSplit, TFT_BLACK);
-   tft.setTextFont(1);
-   tft.setTextSize(HDR_FONT);
-   tft.setTextColor(TFT_GREEN);
-   tft.setCursor(0, 0);
-   char buf[BUF_SIZE];
-   memset(buf, 0, BUF_SIZE);
-   strncpy(buf, hdr1, BUF_SIZE);
-   tft.println(buf);
-   tft.setTextSize(DETAIL_FONT);
-   tft.setCursor(0, 18);
-   memset(buf, 0, BUF_SIZE);
-   strncpy(buf, detail1, BUF_SIZE);
-   tft.println(buf);
-   tft.setTextSize(MODE_FONT);
-   tft.setCursor(0, 36);
-   memset(buf, 0, BUF_SIZE);
-   strncpy(buf, hdr2, BUF_SIZE);
-   tft.println(buf);
-   tft.setTextSize(DETAIL_FONT);
-   tft.setCursor(0, 54);
-   memset(buf, 0, BUF_SIZE);
-   strncpy(buf, detail2, BUF_SIZE);
-   tft.println(buf);
+void TFT::drawIfChanged(const String& newVal, String& oldVal, int x, int y, uint16_t color)
+{
+    if (newVal != oldVal) {
+        tft.setTextColor(TFT_BLACK, TFT_BLACK); // erases old text
+        tft.drawString(oldVal, x, y);
+        tft.setTextColor(color, TFT_BLACK); // new text
+        tft.drawString(newVal, x, y);
+        oldVal = newVal;
+    }
 }
 
 void TFT::Update(const char *state, uint16_t level) {

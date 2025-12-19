@@ -233,7 +233,7 @@ void Tank::Process() {
       _iot.Publish("readings", s.c_str(), false);
 #endif
       _lastMessagePublished = s;
-      logd("Published readings: %s", s.c_str());
+      logv("Published readings: %s", s.c_str());
    }
    return;
 }

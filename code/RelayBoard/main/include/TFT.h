@@ -56,10 +56,19 @@ const int ZoneColors[] = {TFT_WHITE, TFT_YELLOW, TFT_GREEN, TFT_ORANGE, TFT_CYAN
 #define STATUS_Y 0
 #define BUF_SIZE 32
 
+struct TFTHeaderCache {
+   String hdr1;
+   String detail1;
+   String hdr2;
+   String detail2;
+   int count = -1; // use -1 to indicate “no previous count”
+   String status;
+   String levelStr;
+};
+
 class TFT : public IDisplayServiceInterface {
  public:
    void Init();
-   void Display(const char *state, uint16_t level);
    void Display(const char *hdr1, const char *detail1, const char *hdr2, const char *detail2);
    void Display(const char *hdr1, const char *detail1, const char *hdr2, int count);
    void AnalogMeter(std::vector<Thresholds> &thresholds);
@@ -67,14 +76,15 @@ class TFT : public IDisplayServiceInterface {
 
  private:
    void plotNeedle(int value, byte ms_delay);
-   uint8_t xOffset(uint8_t textSize, uint8_t numberOfCharaters);
    uint16_t _hSplit = 70;
    std::vector<Thresholds> _thresholds;
    float ltx = 0;                 // Saved x coord of bottom of needle
    uint16_t osx = 120, osy = 120; // Saved x & y coords
    int value[6] = {0, 0, 0, 0, 0, 0};
    int old_value[6] = {-1, -1, -1, -1, -1, -1};
-   int old_analog = -999;  // Value last displayed
+   int old_analog = -999; // Value last displayed
+   void drawIfChanged(const String &newVal, String &oldVal, int x, int y, uint16_t color);
+   TFTHeaderCache _headerCache;
 };
 
 } // namespace CLASSICDIY
