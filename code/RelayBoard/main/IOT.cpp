@@ -51,9 +51,9 @@ void IOT::Init(IOTCallbackInterface *iotCB, AsyncWebServer *pwebServer) {
            OUTPUT); // use LED for wifi AP status (note:edgeBox shares the LED pin with the serial TX gpio)
 #endif
    pinMode(GPIO_NUM_0, INPUT_PULLUP);
+   EEPROM.begin(EEPROM_SIZE);
 #ifdef FACTORY_RESET_PIN // use digital input pin for factory reset
    pinMode(FACTORY_RESET_PIN, INPUT_PULLUP);
-   EEPROM.begin(EEPROM_SIZE);
    if (digitalRead(FACTORY_RESET_PIN) == LOW) {
       logi("Factory Reset");
       EEPROM.write(0, 0);
@@ -61,7 +61,6 @@ void IOT::Init(IOTCallbackInterface *iotCB, AsyncWebServer *pwebServer) {
       saveSettings();
    }
 #elif BUTTONS // use analog pin for factory reset
-   EEPROM.begin(EEPROM_SIZE);
    uint16_t analogValue = analogRead(BUTTONS);
    logd("button value (%d)", analogValue);
    if (analogValue > 3000) {

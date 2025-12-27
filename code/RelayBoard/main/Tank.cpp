@@ -194,7 +194,7 @@ void Tank::Process() {
    Run(); // base class
    String s;
    float waterLevel = _Sensor.Level();
-   if (waterLevel >= 0 && abs(_lastWaterLevel - waterLevel) > 1.0) // limit broadcast to 1% change
+   if (waterLevel >= 0 && abs(_lastWaterLevel - waterLevel) > 0.5) // limit broadcast to .5% change
    {
       JsonDocument doc;
       doc.clear();
@@ -242,7 +242,9 @@ void Tank::onNetworkState(NetworkState state) {
    _networkState = state;
 #ifdef Has_TFT
    if (state >= NoNetwork) {
+      delay(5000); // display the IP address for 5 seconds then display the gauge
       _tft.AnalogMeter(_relayThresholds); // setup analog display after APMode timeout
+      _lastWaterLevel = 0; // force publish to update tft
    }
 #endif
    if (state == OnLine) {
