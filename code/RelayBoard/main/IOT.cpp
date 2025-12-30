@@ -918,6 +918,7 @@ void IOT::HandleMQTT(int32_t event_id, void *event_data) {
    case MQTT_EVENT_DISCONNECTED:
       logw("Disconnected from MQTT");
       if (_networkState == OnLine) {
+         logd("Try to reconnect to MQTT in 5 seconds");
          xTimerStart(mqttReconnectTimer, 5000);
       }
       break;
