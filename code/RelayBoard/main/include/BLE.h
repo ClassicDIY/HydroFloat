@@ -1,8 +1,6 @@
 #pragma once
 #ifdef Has_BT
 
-#include "Enumerations.h"
-
 class BLE {
  public:
    BLE() {};

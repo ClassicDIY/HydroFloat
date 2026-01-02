@@ -3,13 +3,13 @@
 #include <ESPAsyncWebServer.h>
 #include "IOTCallbackInterface.h"
 #include "IDisplayServiceInterface.h"
-#include "Enumerations.h"
+#include "IOTEnumerations.h"
 #include "Log.h"
 #include "Thresholds.h"
 #include "Device.h"
 #include "AnalogSensor.h"
 
-namespace CLASSICDIY {
+using namespace CLASSICDIY;
 
 class Tank : public Device, public IOTCallbackInterface {
  public:
@@ -48,4 +48,4 @@ class Tank : public Device, public IOTCallbackInterface {
    float _lastWaterLevel = 0;
    String _bodyBuffer;
 };
-} // namespace CLASSICDIY
+

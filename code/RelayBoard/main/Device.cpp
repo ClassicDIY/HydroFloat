@@ -8,8 +8,6 @@
 #include "Log.h"
 #include "Device.h"
 
-namespace CLASSICDIY {
-
 void Device::InitCommon() {
    Wire.begin(I2C_SDA, I2C_SCL);
 #ifdef UseLittleFS
@@ -138,4 +136,3 @@ void inline Buzzer_PWM(uint16_t Time) // ledChannel：PWM Channe    dutyfactor:d
 
 #endif
 
-} // namespace CLASSICDIY

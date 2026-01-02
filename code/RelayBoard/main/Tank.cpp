@@ -9,8 +9,6 @@
 #include "BLE.h"
 #include "app_script.js"
 
-namespace CLASSICDIY {
-
 IOT _iot = IOT();
 #ifdef Has_BT
 BLE _ble = BLE();
@@ -332,4 +330,3 @@ boolean Tank::PublishDiscoverySub(IOTypes type, const char *entityName, const ch
 void Tank::onMqttMessage(char *topic, char *payload) {}
 #endif
 
-} // namespace CLASSICDIY

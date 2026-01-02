@@ -3,7 +3,7 @@
 #include <sstream>
 #include <string>
 
-namespace CLASSICDIY {
+
 class AnalogSensor {
  public:
    AnalogSensor(int channel);
@@ -21,4 +21,4 @@ class AnalogSensor {
    float _medianBuf[3] = {0, 0, 0};
    int _medianIndex = 0;
 };
-} // namespace CLASSICDIY
+

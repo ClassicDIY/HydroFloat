@@ -4,8 +4,6 @@
 
 TFT_eSPI tft = TFT_eSPI(); // Invoke library
 
-namespace CLASSICDIY {
-
 void TFT::Init() {
    tft.init();
    tft.setRotation(1); // Landscape
@@ -242,7 +240,5 @@ void TFT::AnalogMeter(std::vector<Thresholds> &thresholds) {
    tft.drawRect(METER_MARGIN_X, METER_MARGIN_Y, METER_INNER_W, METER_INNER_H, TFT_BLACK);
    plotNeedle(0, 0); // Initial needle
 }
-
-} // namespace CLASSICDIY
 
 #endif

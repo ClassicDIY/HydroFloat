@@ -3,10 +3,7 @@
 #ifdef Has_TFT
 #include <TFT_eSPI.h> // Graphics library
 #include "IDisplayServiceInterface.h"
-#include "Enumerations.h"
 #include "Thresholds.h"
-
-namespace CLASSICDIY {
 
 // Fonts
 #define FF17 &FreeSans9pt7b
@@ -87,5 +84,4 @@ class TFT : public IDisplayServiceInterface {
    TFTHeaderCache _headerCache;
 };
 
-} // namespace CLASSICDIY
 #endif

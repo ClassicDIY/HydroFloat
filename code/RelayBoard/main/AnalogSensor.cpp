@@ -2,8 +2,6 @@
 #include "Log.h"
 #include "AnalogSensor.h"
 
-namespace CLASSICDIY {
-
 AnalogSensor::AnalogSensor(int channel) {
    _channel = channel;
    pinMode(channel, ANALOG);
@@ -48,4 +46,4 @@ float AnalogSensor::FilterMedian(float val) {
    // median of 3
    return max(min(a, b), min(max(a, b), c));
 }
-} // namespace CLASSICDIY
+
