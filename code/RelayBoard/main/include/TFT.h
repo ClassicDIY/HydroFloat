@@ -62,6 +62,7 @@ struct TFTHeaderCache {
    String status;
    String levelStr;
 };
+using namespace CLASSICDIY;
 
 class TFT : public IDisplayServiceInterface {
  public:
