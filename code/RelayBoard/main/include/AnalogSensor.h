@@ -2,7 +2,6 @@
 #include <Arduino.h>
 #include <sstream>
 #include <string>
-#include "defines.h"
 
 namespace CLASSICDIY {
 class AnalogSensor {

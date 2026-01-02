@@ -1,7 +1,6 @@
 #ifdef Has_TFT
 #include "TFT.h"
 #include "Log.h"
-#include "defines.h"
 
 TFT_eSPI tft = TFT_eSPI(); // Invoke library
 

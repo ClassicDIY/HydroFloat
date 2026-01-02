@@ -1,6 +1,5 @@
 #include <Arduino.h>
 #include "Log.h"
-#include "Defines.h"
 #include "AnalogSensor.h"
 
 namespace CLASSICDIY {

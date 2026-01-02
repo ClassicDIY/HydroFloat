@@ -5,7 +5,8 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 #include "IDisplayServiceInterface.h"
-#include "Enumerations.h"
+#include "GPIO_pins.h"
+
 
 namespace CLASSICDIY {
 #define LEVEL_FONT 5

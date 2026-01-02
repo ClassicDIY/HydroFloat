@@ -2,20 +2,12 @@
 #include <Arduino.h>
 #include "Log.h"
 
-// Modbus setup
-#define CoilsDiv "class=\"hidden\""
-#define InputRegistersDiv ""
-#define DiscretesDiv ""
-#define HoldingRegistersDiv "class=\"hidden\""
-
 #ifdef ESP32_DEV_BOARD
 
 #define SensorPin GPIO_NUM_3
 #define ADC_Resolution 4095.0
 
 #define NUM_RELAYS 2                     // number of relays
-#define WIFI_STATUS_PIN GPIO_NUM_2   // LED Pin
-#define FACTORY_RESET_PIN GPIO_NUM_4 // Clear NVRAM
 
 // I2C
 #define I2C_SDA GPIO_NUM_21
@@ -30,7 +22,6 @@
 
 #define RGB_LED_PIN GPIO_NUM_38
 #define GPIO_PIN_Buzzer GPIO_NUM_21   // Buzzer Control GPIO
-#define FACTORY_RESET_PIN GPIO_NUM_12 // Clear NVRAM
 #define PWM_Channel 1                 // PWM Channel
 #define Frequency 1000                // PWM frequencyconst
 #define Resolution 8
@@ -47,11 +38,6 @@ void inline RGB_Light(uint8_t red_val, uint8_t green_val, uint8_t blue_val) {
 #define U0_TXD GPIO_NUM_43
 #define U0_RXD GPIO_NUM_44
 
-// RS485
-#define RS485_TXD GPIO_NUM_17
-#define RS485_RXD GPIO_NUM_18
-#define RS485_RTS -1
-
 // I2C
 #define I2C_SDA GPIO_NUM_47
 #define I2C_SCL GPIO_NUM_48
@@ -66,9 +52,6 @@ void inline RGB_Light(uint8_t red_val, uint8_t green_val, uint8_t blue_val) {
 
 #endif
 #ifdef Lilygo_Relay_4CH
-
-#define WIFI_STATUS_PIN GPIO_NUM_25  // LED Pin on the ESP32 Lilygo T-Relay board
-#define FACTORY_RESET_PIN GPIO_NUM_13 // Clear NVRAM
 
 #define SensorPin A0
 #define ADC_Resolution 4095.0
@@ -92,7 +75,6 @@ void inline RGB_Light(uint8_t red_val, uint8_t green_val, uint8_t blue_val) {
 #endif
 #ifdef Lilygo_Relay_6CH
 
-#define FACTORY_RESET_PIN GPIO_NUM_2 // Clear NVRAM
 #define NUM_RELAYS 6
 
 // HT74HC595

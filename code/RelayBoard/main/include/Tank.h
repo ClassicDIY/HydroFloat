@@ -6,7 +6,6 @@
 #include "Enumerations.h"
 #include "Log.h"
 #include "Thresholds.h"
-#include "Defines.h"
 #include "Device.h"
 #include "AnalogSensor.h"
 
@@ -26,6 +25,7 @@ class Tank : public Device, public IOTCallbackInterface {
    bool onModbusMessage(ModbusMessage &msg);
 #endif
    void onNetworkState(NetworkState state);
+   void onSocketPong();
    void onSaveSetting(JsonDocument &doc);
    void onLoadSetting(JsonDocument &doc);
    String appTemplateProcessor(const String &var);

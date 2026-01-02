@@ -2,7 +2,6 @@
 #include "Wire.h"
 #include "Oled.h"
 #include "Log.h"
-#include "defines.h"
 
 Adafruit_SSD1306 oled_display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 

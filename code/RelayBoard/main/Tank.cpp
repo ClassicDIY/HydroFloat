@@ -11,8 +11,6 @@
 
 namespace CLASSICDIY {
 
-static AsyncWebServer _asyncServer(ASYNC_WEBSERVER_PORT);
-static AsyncWebSocket _webSocket("/ws_home");
 IOT _iot = IOT();
 #ifdef Has_BT
 BLE _ble = BLE();
@@ -20,76 +18,10 @@ BLE _ble = BLE();
 
 void Tank::Setup() {
    Init();
-   _iot.Init(this, &_asyncServer);
+   _iot.Init(this);
 #ifdef Has_BT
    _ble.begin();
 #endif
-   _asyncServer.addHandler(&_webSocket).addMiddleware([this](AsyncWebServerRequest *request, ArMiddlewareNext next) {
-      // ws.count() is the current count of WS clients: this one is trying to upgrade its HTTP connection
-      if (_webSocket.count() > 1) {
-         // if we have 2 clients or more, prevent the next one to connect
-         request->send(503, "text/plain", "Server is busy");
-      } else {
-         // process next middleware and at the end the handler
-         next();
-      }
-   });
-   _asyncServer.on("/", HTTP_GET, [this](AsyncWebServerRequest *request) {
-      logd("HTTP_GET /");
-      request->send(200, "text/html", home_html, [this](const String &var) { return appTemplateProcessor(var); });
-   });
-   _asyncServer.on("/appsettings", HTTP_GET, [this](AsyncWebServerRequest *request) {
-      JsonDocument app;
-      onSaveSetting(app);
-      String s;
-      serializeJson(app, s);
-      request->send(200, "text/html", s);
-   });
-   _asyncServer.on(
-       "/app_fields", HTTP_POST,
-       [this](AsyncWebServerRequest *request) {
-          // Called after all chunks are received
-          logv("Full body received: %s", _bodyBuffer.c_str());
-          // Parse JSON safely
-          JsonDocument doc; // adjust size to expected payload
-          DeserializationError err = deserializeJson(doc, _bodyBuffer);
-          if (err) {
-             logd("JSON parse failed: %s", err.c_str());
-          } else {
-             logd("app_fields: %s", formattedJson(doc).c_str());
-             _relayThresholds.clear();
-             onLoadSetting(doc);
-          }
-          request->send(200, "application/json", "{\"status\":\"ok\"}");
-          _bodyBuffer = ""; // clear for next request
-       },
-       NULL, // file upload handler (not used here)
-       [this](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
-          logv("Chunk received: len=%d, index=%d, total=%d", len, index, total);
-          // Append chunk to buffer
-          _bodyBuffer.reserve(total); // reserve once for efficiency
-          for (size_t i = 0; i < len; i++) {
-             _bodyBuffer += (char)data[i];
-          }
-          if (index + len == total) {
-             logd("Upload complete!");
-          }
-       });
-   _webSocket.onEvent([this](AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len) {
-      (void)len;
-      if (type == WS_EVT_CONNECT) {
-         logd("ws_home socket Connected!");
-         _lastWaterLevel = -1; // force a broadcast
-         client->setCloseClientOnQueueFull(false);
-         client->ping();
-      } else if (type == WS_EVT_DISCONNECT) {
-         logi("ws_home socket Disconnected!");
-      } else if (type == WS_EVT_ERROR) {
-         loge("ws error");
-      } else if (type == WS_EVT_PONG) {
-         logd("ws pong");
-      }
-   });
 }
 
 void Tank::onSaveSetting(JsonDocument &doc) {
@@ -136,6 +68,12 @@ String Tank::appTemplateProcessor(const String &var) {
    }
    if (var == "version") {
       return String(APP_VERSION);
+   }
+   if (var == "home_html") {
+      String home;
+      home.reserve(strlen(home_html));
+      home += home_html;
+      return home;
    }
    if (var == "Relays") {
       String relays;
@@ -221,7 +159,7 @@ void Tank::Process() {
       _tft.Update(state.c_str(), waterLevel);
 #endif
       serializeJson(doc, s);
-      _webSocket.textAll(s);
+      _iot.PostWeb(s);
       if (_lastMessagePublished == s) // anything changed?
       {
          return;
@@ -236,6 +174,11 @@ void Tank::Process() {
       logv("Published readings: %s", s.c_str());
    }
    return;
+}
+
+void Tank::onSocketPong() {
+   _lastWaterLevel = -1;
+   _lastMessagePublished.clear(); // force a broadcast
 }
 
 void Tank::onNetworkState(NetworkState state) {

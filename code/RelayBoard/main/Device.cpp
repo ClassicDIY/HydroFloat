@@ -67,23 +67,9 @@ void Device::Init() {
    for (int i = 0; i < NUM_RELAYS; i++) {
       pinMode(_relays[i], OUTPUT);
    }
-   pinMode(FACTORY_RESET_PIN, INPUT_PULLUP);
-   pinMode(WIFI_STATUS_PIN, OUTPUT);
 }
 
 void Device::Run() {
-   // handle blink led, fast : NotConnected slow: AP connected On: Station connected
-   if (_networkState != OnLine) {
-      unsigned long binkRate = _networkState == ApState ? AP_BLINK_RATE : NC_BLINK_RATE;
-      unsigned long now = millis();
-      if (binkRate < now - _lastBlinkTime) {
-         _blinkStateOn = !_blinkStateOn;
-         _lastBlinkTime = now;
-         digitalWrite(WIFI_STATUS_PIN, _blinkStateOn ? HIGH : LOW);
-      }
-   } else {
-      digitalWrite(WIFI_STATUS_PIN, LOW);
-   }
 }
 
 void Device::SetRelay(const uint8_t index, const uint8_t value) { digitalWrite(_relays[index], value); }
@@ -99,23 +85,9 @@ void Device::Init() {
    for (int i = 0; i < NUM_RELAYS; i++) {
       pinMode(_relays[i], OUTPUT);
    }
-   pinMode(FACTORY_RESET_PIN, INPUT_PULLUP);
-   pinMode(WIFI_STATUS_PIN, OUTPUT);
 }
 
 void Device::Run() {
-   // handle blink led, fast : NotConnected slow: AP connected On: Station connected
-   if (_networkState != OnLine) {
-      unsigned long binkRate = _networkState == ApState ? AP_BLINK_RATE : NC_BLINK_RATE;
-      unsigned long now = millis();
-      if (binkRate < now - _lastBlinkTime) {
-         _blinkStateOn = !_blinkStateOn;
-         _lastBlinkTime = now;
-         digitalWrite(WIFI_STATUS_PIN, _blinkStateOn ? HIGH : LOW);
-      }
-   } else {
-      digitalWrite(WIFI_STATUS_PIN, LOW);
-   }
 }
 
 void Device::SetRelay(const uint8_t index, const uint8_t value) { digitalWrite(_relays[index], value); }
