@@ -317,7 +317,7 @@ boolean Tank::PublishDiscoverySub(IOTypes type, const char *entityName, const ch
    device["name"] = _iot.getThingName().c_str();
    device["sw_version"] = APP_VERSION;
    device["manufacturer"] = "ClassicDIY";
-   sprintf(buffer, "%s (%X)", TAG, _iot.getUniqueId());
+   sprintf(buffer, "%s (%X)", APP_LOG_TAG, _iot.getUniqueId());
    device["model"] = buffer;
    JsonArray identifiers = device["identifiers"].to<JsonArray>();
    sprintf(buffer, "%X", _iot.getUniqueId());
