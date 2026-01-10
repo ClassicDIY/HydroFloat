@@ -50,6 +50,7 @@ void Tank::onSaveSetting(JsonDocument &doc) {
 }
 
 void Tank::onLoadSetting(JsonDocument &doc) {
+   _relayThresholds.clear();
    JsonArray rth = doc["relayThresholds"].as<JsonArray>();
    for (JsonObject obj : rth) {
       Thresholds rule;
