@@ -41,6 +41,7 @@ class Tank : public Device, public IOTCallbackInterface {
    boolean PublishDiscoverySub(IOTypes type, const char *entityName, const char *unit_of_meas = nullptr, const char *icon = nullptr);
 #endif
  private:
+   String _base_state; // all relays off label
    std::vector<Thresholds> _relayThresholds;
    AnalogSensor _Sensor = AnalogSensor(SensorPin);
    boolean _discoveryPublished = false;

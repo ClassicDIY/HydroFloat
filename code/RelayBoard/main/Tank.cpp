@@ -25,6 +25,7 @@ void Tank::Setup() {
 void Tank::onSaveSetting(JsonDocument &doc) {
    if (_relayThresholds.size() == 0) {
       logd("set default threshhold labels");
+      _base_state = "Stop";
 #define DEFAULT_LABELS 4
       String defaultLabels[DEFAULT_LABELS] = {"Run", "Start lead", "Start lag", "Overflow"};
       int inc = 100 / (NumberOfRelays() + 1);
@@ -40,6 +41,7 @@ void Tank::onSaveSetting(JsonDocument &doc) {
          threshold += inc;
       }
    }
+   doc["baseState"] = _base_state;
    JsonArray rth = doc["relayThresholds"].to<JsonArray>();
    for (const auto &rule : _relayThresholds) {
       JsonObject obj = rth.add<JsonObject>();
@@ -51,6 +53,7 @@ void Tank::onSaveSetting(JsonDocument &doc) {
 
 void Tank::onLoadSetting(JsonDocument &doc) {
    _relayThresholds.clear();
+   _base_state = doc["baseState"].as<String>();
    JsonArray rth = doc["relayThresholds"].as<JsonArray>();
    for (JsonObject obj : rth) {
       Thresholds rule;
@@ -102,13 +105,16 @@ String Tank::appTemplateProcessor(const String &var) {
       return scripts;
    }
    if (var == "app_fields") {
-      return String(app_config_fields);
+      return String(threshold_configs);
    }
    if (var == "acf") {
       String appFields;
+      String base_state = base_state_config;
+      base_state.replace("%state_value%", _base_state.c_str());
+      appFields += base_state;
       int i = 1;
       for (auto &rule : _relayThresholds) {
-         String appField = app_config_field;
+         String appField = threshold_config;
          appField.replace("%RelayN%", String(i++).c_str());
          appField.replace("%th_value%", String(rule.threshold).c_str());
          appField.replace("%state_value%", rule.label.c_str());
@@ -138,7 +144,7 @@ void Tank::Process() {
       waterLevel = waterLevel <= 1.0 ? 0 : waterLevel;
       _lastWaterLevel = waterLevel;
       doc["level"] = waterLevel;
-      String state = "Stop";
+      String state = _base_state;
       int i = 0;
       for (auto &rule : _relayThresholds) {
          SetRelay(i, waterLevel > rule.threshold ? HIGH : LOW);

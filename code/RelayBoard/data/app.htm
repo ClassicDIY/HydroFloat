@@ -8,7 +8,13 @@ const char relay_script[] PROGMEM = R"rawliteral(
 	document.getElementById(`{RelayId}`).style.backgroundColor = (gpioValues.{RelayId} === 'on') ? 'green' : 'red';
 	)rawliteral";
 
-const char app_config_field[] PROGMEM = R"rawliteral(
+const char base_state_config[] PROGMEM = R"rawliteral(
+	<div class="fld">
+		<label for="base_label">Base State: </label><input type="text" id="base_label" name="base_label" value="%state_value%" required minlength="1" maxlength="10">
+	</div>
+	)rawliteral";
+
+const char threshold_config[] PROGMEM = R"rawliteral(
 	<div class="fld">
 		<label>Relay %RelayN%:</label>
 		<label for="threshold">Threshold: </label><input type="number" id="threshold" name="threshold" placeholder="1..100" value=%th_value% min="1" max="100" required step="1">
@@ -16,7 +22,7 @@ const char app_config_field[] PROGMEM = R"rawliteral(
 	</div>
 	)rawliteral";
 
-const char app_config_fields[] PROGMEM = R"rawliteral(
+const char threshold_configs[] PROGMEM = R"rawliteral(
 	<div class="center-flex">
 		<fieldset id="levels">
 			<legend>Level</legend>
