@@ -23,8 +23,9 @@ void Tank::Setup() {
 }
 
 void Tank::onSaveSetting(JsonDocument &doc) {
-   if (_relayThresholds.size() == 0) {
+   if (_thresholds.size() == 0) {
       logd("set default threshhold labels");
+      _mode = Float;
       _base_state = "Stop";
 #define DEFAULT_LABELS 4
       String defaultLabels[DEFAULT_LABELS] = {"Run", "Start lead", "Start lag", "Overflow"};
@@ -37,22 +38,26 @@ void Tank::onSaveSetting(JsonDocument &doc) {
             newRule.label = defaultLabels[i]; // set default label
          }
          newRule.active = i < DEFAULT_LABELS;
-         _relayThresholds.push_back(newRule);
+         _thresholds.push_back(newRule);
          threshold += inc;
       }
    }
+   doc["mode"] = _mode;
    doc["baseState"] = _base_state;
    JsonArray rth = doc["relayThresholds"].to<JsonArray>();
-   for (const auto &rule : _relayThresholds) {
+   for (const auto &rule : _thresholds) {
       JsonObject obj = rth.add<JsonObject>();
       obj["threshold"] = rule.threshold;
       obj["label"] = rule.label;
       obj["active"] = rule.active;
    }
+   doc["_calibrationOffset"] = _Sensor._calibrationOffset;
 }
 
 void Tank::onLoadSetting(JsonDocument &doc) {
-   _relayThresholds.clear();
+   logd("app_fields: %s", formattedJson(doc).c_str());
+   _mode = doc["mode"].isNull() ? Float : doc["mode"].as<Mode>();
+   _thresholds.clear();
    _base_state = doc["baseState"].as<String>();
    JsonArray rth = doc["relayThresholds"].as<JsonArray>();
    for (JsonObject obj : rth) {
@@ -60,8 +65,9 @@ void Tank::onLoadSetting(JsonDocument &doc) {
       rule.threshold = obj["threshold"];
       rule.label = obj["label"].as<String>();
       rule.active = obj["active"];
-      _relayThresholds.push_back(rule);
+      _thresholds.push_back(rule);
    }
+   _Sensor._calibrationOffset = doc["_calibrationOffset"];
 }
 
 String Tank::appTemplateProcessor(const String &var) {
@@ -80,7 +86,7 @@ String Tank::appTemplateProcessor(const String &var) {
    if (var == "Relays") {
       String relays;
       int i = 1;
-      for (auto &rule : _relayThresholds) {
+      for (auto &rule : _thresholds) {
          String relay = relay_field;
          std::stringstream relayId;
          relayId << "relay" << i;
@@ -95,7 +101,7 @@ String Tank::appTemplateProcessor(const String &var) {
    if (var == "relay_script") {
       String scripts;
       int i = 1;
-      for (auto &rule : _relayThresholds) {
+      for (auto &rule : _thresholds) {
          std::stringstream relayId;
          relayId << "relay" << i++;
          String script = relay_script;
@@ -105,7 +111,7 @@ String Tank::appTemplateProcessor(const String &var) {
       return scripts;
    }
    if (var == "app_fields") {
-      return String(threshold_configs);
+      return String(app_configs);
    }
    if (var == "acf") {
       String appFields;
@@ -113,7 +119,7 @@ String Tank::appTemplateProcessor(const String &var) {
       base_state.replace("%state_value%", _base_state.c_str());
       appFields += base_state;
       int i = 1;
-      for (auto &rule : _relayThresholds) {
+      for (auto &rule : _thresholds) {
          String appField = threshold_config;
          appField.replace("%RelayN%", String(i++).c_str());
          appField.replace("%th_value%", String(rule.threshold).c_str());
@@ -122,11 +128,20 @@ String Tank::appTemplateProcessor(const String &var) {
       }
       return appFields;
    }
+   if (var == "appSelectValues") {
+      return String(app_script_select);
+   }
+   if (var == "appScript") {
+      return String(app_script_base);
+   }
    if (var == "app_script_js") {
       return String(app_script_js);
    }
+   if (var == "onload") {
+      return String(onLoadScript);
+   }
    if (var == "validateInputs") {
-      return String("");
+      return String(app_validateInputs);
    }
    logd("Did not find app template for: %s", var.c_str());
    return String("");
@@ -146,14 +161,55 @@ void Tank::Process() {
       doc["level"] = waterLevel;
       String state = _base_state;
       int i = 0;
-      for (auto &rule : _relayThresholds) {
-         SetRelay(i, waterLevel > rule.threshold ? HIGH : LOW);
+      for (auto &rule : _thresholds) {
+         if (_mode == Pump) {
+            if (i == 0) {
+               if (waterLevel <= rule.threshold) { // below stop threshold? turn all relays off
+                  for (int j = 0; j < NumberOfRelays(); j++) {
+                     SetRelay(j, LOW);
+                  }
+               } else {
+                  SetRelay(i, HIGH); // just set relay 0 on
+               }
+            }
+            if (i == 1) {
+               if (waterLevel > rule.threshold) {         // start lead
+                  if (!GetRelay(i) && !GetRelay(i + 1)) { // both relays off?
+                     SetRelay(_alternate ? i + 1 : i, HIGH);
+                     _alternate = !_alternate; // toggle
+                  }
+               }
+            }
+            if (i == 2) {
+               if (waterLevel > rule.threshold) { // start lag => all pumps on
+                  SetRelay(1, HIGH);
+                  SetRelay(2, HIGH);
+               }
+            }
+            if (i == 3) {
+               SetRelay(i, waterLevel > rule.threshold ? HIGH : LOW); // overflow alarm
+            }
+         } else {
+            SetRelay(i, waterLevel > rule.threshold ? HIGH : LOW);
+            if (waterLevel > rule.threshold) {
+               state = rule.label;
+            }
+         }
          std::stringstream ss;
-         ss << "relay" << i++ + 1;
-         doc[ss.str()] = waterLevel > rule.threshold ? "on" : "off";
-         if (waterLevel > rule.threshold) {
-            state = rule.label;
-            logv("waterlevel: %f level: %d Label %s", waterLevel, rule.threshold, rule.label.c_str());
+         ss << "relay" << i + 1;
+         doc[ss.str()] = GetRelay(i) ? "on" : "off";
+
+         i++;
+      }
+      if (_mode == Pump) {
+         if (GetRelay(3)) {
+            state = _thresholds[3].label;
+         } else if (GetRelay(2) && GetRelay(1)) { // both relays on. ->Lag
+            state = _thresholds[2].label;
+         } else if (GetRelay(2) || GetRelay(1)) { // either relays on. ->Lag
+            state = _thresholds[1].label;
+         } else if (GetRelay(0)) { // at mark
+            state = _thresholds[0].label;
          }
       }
       doc["state"] = state.c_str();
@@ -190,9 +246,9 @@ void Tank::onNetworkState(NetworkState state) {
    _networkState = state;
 #ifdef Has_TFT
    if (state >= NoNetwork) {
-      delay(5000); // display the IP address for 5 seconds then display the gauge
+      delay(5000);                        // display the IP address for 5 seconds then display the gauge
       _tft.AnalogMeter(_relayThresholds); // setup analog display after APMode timeout
-      _lastWaterLevel = 0; // force publish to update tft
+      _lastWaterLevel = 0;                // force publish to update tft
    }
 #endif
    if (state == OnLine) {
@@ -336,4 +392,3 @@ boolean Tank::PublishDiscoverySub(IOTypes type, const char *entityName, const ch
 
 void Tank::onMqttMessage(char *topic, char *payload) {}
 #endif
-

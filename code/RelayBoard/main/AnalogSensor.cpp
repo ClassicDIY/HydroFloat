@@ -13,9 +13,15 @@ float AnalogSensor::Level() {
    float rVal = 0;
    // --- Oversampled ADC read ---
    double sensorVoltage = ReadOversampledADC();
-   if (sensorVoltage > SensorVoltageMin) {
-      rVal = (sensorVoltage - SensorVoltageMin) * 100 / (SensorVoltageMax - SensorVoltageMin);
-   }
+
+   float vMin = SENSOR_MIN_MV(_calibrationOffset);          // ((4 mA + calibrationOffset) * 135 Ω) = min mV
+   float vMax = SENSOR_MAX_MV(_calibrationOffset);          // ((20 mA + calibrationOffset) * 135 Ω) = max mV
+   if (sensorVoltage <= vMin)
+      rVal = 0;
+   else if (sensorVoltage >= vMax)
+      rVal = 100;
+   else
+      rVal = (sensorVoltage - vMin) * 100 / (vMax - vMin);
    // --- Filtering chain ---
    float median = FilterMedian(rVal);
    float filtered = FilterEMA(median);

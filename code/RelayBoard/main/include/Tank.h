@@ -5,6 +5,7 @@
 #include "IDisplayServiceInterface.h"
 #include "IOTEnumerations.h"
 #include "Log.h"
+#include "Enumerations.h"
 #include "Thresholds.h"
 #include "Device.h"
 #include "AnalogSensor.h"
@@ -41,12 +42,16 @@ class Tank : public Device, public IOTCallbackInterface {
    boolean PublishDiscoverySub(IOTypes type, const char *entityName, const char *unit_of_meas = nullptr, const char *icon = nullptr);
 #endif
  private:
+   Mode _mode; // float or pump mode of operation
+   bool _alternate = false;
    String _base_state; // all relays off label
-   std::vector<Thresholds> _relayThresholds;
+   std::vector<Thresholds> _thresholds;
    AnalogSensor _Sensor = AnalogSensor(SensorPin);
    boolean _discoveryPublished = false;
    String _lastMessagePublished;
    float _lastWaterLevel = 0;
    String _bodyBuffer;
+   
+
 };
 

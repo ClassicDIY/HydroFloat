@@ -9,6 +9,7 @@ void Oled::Init() {
    if (!oled_display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
       loge("SSD1306 allocation failed");
    } else {
+      oled_display.setRotation(2);
       oled_display.clearDisplay();
    }
 }
@@ -57,7 +58,7 @@ void Oled::Display(const char* hdr1, const char* detail1, const char* hdr2, int 
    strncpy(buf, detail1, NumChar(DETAIL_FONT));
    oled_display.println(buf);
    oled_display.setTextSize(MODE_FONT);
-   oled_display.setCursor(0, 36);
+   oled_display.setCursor(0, 32);
    memset(buf, 0, BUF_SIZE);
    strncpy(buf, hdr2, NumChar(MODE_FONT));
    oled_display.print(buf);
@@ -83,12 +84,12 @@ void Oled::Display(const char* hdr1, const char* detail1, const char* hdr2, cons
    strncpy(buf, detail1, NumChar(DETAIL_FONT));
    oled_display.println(buf);
    oled_display.setTextSize(MODE_FONT);
-   oled_display.setCursor(0, 36);
+   oled_display.setCursor(0, 32);
    memset(buf, 0, BUF_SIZE);
    strncpy(buf, hdr2, NumChar(MODE_FONT));
    oled_display.println(buf);
    oled_display.setTextSize(DETAIL_FONT);
-   oled_display.setCursor(0, 54);
+   oled_display.setCursor(0, 50);
    memset(buf, 0, BUF_SIZE);
    strncpy(buf, detail2, NumChar(DETAIL_FONT));
    oled_display.println(buf);
