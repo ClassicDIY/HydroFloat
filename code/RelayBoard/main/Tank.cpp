@@ -52,6 +52,8 @@ void Tank::onSaveSetting(JsonDocument &doc) {
       obj["active"] = rule.active;
    }
    doc["_calibrationOffset"] = _Sensor._calibrationOffset;
+   doc["_lowerLimit"] = _Sensor._lowerLimit;
+   doc["_upperLimit"] = _Sensor._upperLimit;
 }
 
 void Tank::onLoadSetting(JsonDocument &doc) {
@@ -68,6 +70,8 @@ void Tank::onLoadSetting(JsonDocument &doc) {
       _thresholds.push_back(rule);
    }
    _Sensor._calibrationOffset = doc["_calibrationOffset"];
+   _Sensor._lowerLimit = doc["_lowerLimit"];
+   _Sensor._upperLimit = doc["_upperLimit"];
 }
 
 String Tank::appTemplateProcessor(const String &var) {

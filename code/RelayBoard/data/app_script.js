@@ -50,6 +50,11 @@ try {
     // Read the calibration offset
     const offsetInput = document.getElementById("_calibrationOffset");
     payload._calibrationOffset = parseFloat(offsetInput.value);
+    // Read the range limits
+    const lowerLimit = document.getElementById("_lowerLimit");
+    payload._lowerLimit = parseFloat(lowerLimit.value);
+    const upperLimit = document.getElementById("_upperLimit");
+    payload._upperLimit = parseFloat(upperLimit.value);
 
 
     console.log(payload);
@@ -73,4 +78,10 @@ try {
 
 const char app_validateInputs[] PROGMEM = R"rawliteral(
 
+	const _lowerLimit = parseFloat(document.getElementById("_lowerLimit").value);
+	const _upperLimit = parseFloat(document.getElementById("_upperLimit").value);
+	if (_lowerLimit >= _upperLimit) {
+		alert('The lower limit must be lower than upper limit!');
+		return false;
+	}
 )rawliteral";
