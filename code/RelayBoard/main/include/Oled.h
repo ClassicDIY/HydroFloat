@@ -14,8 +14,8 @@
 #define DETAIL_FONT 1
 #define NumChar(font) SCREEN_WIDTH / (6 * font)
 
-#define LEVEL_Y 0
-#define STATUS_Y 48
+#define LEVEL_Y 24
+#define STATUS_Y 0
 #define BUF_SIZE 32
 
 using namespace CLASSICDIY;
