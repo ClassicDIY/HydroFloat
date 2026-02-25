@@ -156,7 +156,7 @@ void Tank::Process() {
    Run(); // base class
    String s;
    float waterLevel = _Sensor.Level();
-   if (waterLevel >= 0 && abs(_lastWaterLevel - waterLevel) > 0.5) // limit broadcast to .5% change
+   if (waterLevel >= 0 && abs(_lastWaterLevel - waterLevel) > 1.0) // limit broadcast to 1.0% change
    {
       JsonDocument doc;
       doc.clear();

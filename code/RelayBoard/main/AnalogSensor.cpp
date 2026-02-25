@@ -31,7 +31,7 @@ float AnalogSensor::Level() {
 }
 
 float AnalogSensor::ReadOversampledADC() {
-   const int samples = 32;
+   const int samples = 48;
    uint32_t sum = 0;
    for (int i = 0; i < samples; i++)
       sum += analogReadMilliVolts(_channel);
