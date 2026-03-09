@@ -10,7 +10,7 @@
 <p align="left">
   <img src="./Pictures/home_page.png" width="600"/>
   <img src="./Pictures/Settings.png" width="600"/>
-  <img src="./Pictures/HydroFloat_T-Relay.jpg" width="600"/>
+  <img src="./Pictures/SideBoard.png" width="600"/>
 </p>
  
 
